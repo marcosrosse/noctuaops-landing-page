@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LunaWatch — Monitoring as a Service</title>
+  <meta name="description" content="Monitorização externa para PMEs. Sem agentes, sem complexidade. Sabemos antes dos seus clientes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080c0e;
+      --bg2: #0d1417;
+      --bg3: #111a1e;
+      --border: rgba(32, 220, 140, 0.15);
+      --green: #20dc8c;
+      --green-dim: rgba(32, 220, 140, 0.08);
+      --green-mid: rgba(32, 220, 140, 0.4);
+      --amber: #f5a623;
+      --red: #ff4d6d;
+      --text: #e8f0ed;
+      --muted: #5a7268;
+      --muted2: #3a504a;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 300;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* NOISE OVERLAY */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    /* GRID BG */
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%);
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(1.5rem, 5vw, 4rem);
+      height: 64px;
+      background: rgba(8, 12, 14, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(32,220,140,0.4); }
+      50% { opacity: 0.7; transform: scale(1.2); box-shadow: 0 0 0 6px rgba(32,220,140,0); }
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+
+    .lang-toggle {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      background: var(--green-dim);
+      border: 1px solid var(--border);
+      color: var(--green);
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+      transition: all 0.2s;
+    }
+    .lang-toggle:hover {
+      background: rgba(32, 220, 140, 0.15);
+      border-color: var(--green-mid);
+    }
+
+    .nav-cta {
+      font-family: var(--sans);
+      font-size: 0.85rem;
+      font-weight: 500;
+      background: var(--green);
+      color: #040807;
+      padding: 8px 20px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: all 0.2s;
+      letter-spacing: 0.01em;
+    }
+    .nav-cta:hover { background: #30f0a0; transform: translateY(-1px); }
+
+    /* SECTIONS */
+    section { position: relative; z-index: 1; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem clamp(1.5rem, 5vw, 4rem) 6rem;
+      position: relative;
+    }
+
+    .hero-glow {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(32,220,140,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      color: var(--green);
+      border: 1px solid var(--border);
+      background: var(--green-dim);
+      padding: 6px 16px;
+      border-radius: 99px;
+      margin-bottom: 2rem;
+      display: inline-block;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero h1 {
+      font-family: var(--mono);
+      font-size: clamp(2rem, 5.5vw, 4.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+      max-width: 14ch;
+      margin: 0 auto 1.5rem;
+      animation: fadeUp 0.6s ease 0.1s both;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--green);
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--muted);
+      max-width: 52ch;
+      margin: 0 auto 3rem;
+      font-weight: 400;
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeUp 0.6s ease 0.3s both;
+    }
+
+    .btn-primary {
+      font-family: var(--sans);
+      font-weight: 600;
+      font-size: 0.95rem;
+      background: var(--green);
+      color: #040807;
+      padding: 14px 32px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: all 0.2s;
+      letter-spacing: 0.01em;
+    }
+    .btn-primary:hover { background: #30f0a0; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(32,220,140,0.25); }
+
+    .btn-ghost {
+      font-family: var(--sans);
+      font-weight: 500;
+      font-size: 0.95rem;
+      background: transparent;
+      color: var(--text);
+      padding: 14px 32px;
+      border-radius: 4px;
+      text-decoration: none;
+      border: 1px solid var(--muted2);
+      transition: all 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--green-mid); color: var(--green); }
+
+    /* TERMINAL WIDGET */
+    .terminal-wrap {
+      margin: 5rem auto 0;
+      max-width: 680px;
+      animation: fadeUp 0.6s ease 0.4s both;
+    }
+
+    .terminal {
+      background: #070b0d;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+    }
+
+    .terminal-bar {
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .t-dot.r { background: #ff5f57; }
+    .t-dot.y { background: #febc2e; }
+    .t-dot.g { background: #28c840; }
+
+    .terminal-body { padding: 20px; line-height: 1.8; }
+    .t-muted { color: var(--muted); }
+    .t-green { color: var(--green); }
+    .t-amber { color: var(--amber); }
+    .t-red { color: var(--red); }
+    .t-dim { color: var(--muted2); }
+
+    .blink { animation: blink 1s step-end infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* STATUS BADGES */
+    .status-row {
+      display: flex; align-items: center; gap: 10px; margin: 4px 0;
+    }
+    .badge-up {
+      background: rgba(32,220,140,0.12);
+      color: var(--green);
+      border: 1px solid rgba(32,220,140,0.3);
+      padding: 1px 8px;
+      border-radius: 3px;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+    }
+    .badge-down {
+      background: rgba(255,77,109,0.12);
+      color: var(--red);
+      border: 1px solid rgba(255,77,109,0.3);
+      padding: 1px 8px;
+      border-radius: 3px;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+    }
+
+    /* METRICS ROW */
+    .metrics {
+      margin: 4rem auto;
+      max-width: 960px;
+      padding: 0 clamp(1.5rem, 5vw, 4rem);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .metric-item {
+      background: var(--bg2);
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+
+    .metric-num {
+      font-family: var(--mono);
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      color: var(--green);
+      display: block;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    /* HOW IT WORKS */
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      color: var(--green);
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .section-title {
+      font-family: var(--mono);
+      font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+    }
+    .section-desc {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-top: 1rem;
+      max-width: 50ch;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .content-section {
+      padding: 6rem clamp(1.5rem, 5vw, 4rem);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* STEPS */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .step-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .step-card:hover {
+      border-color: var(--green-mid);
+      transform: translateY(-4px);
+    }
+    .step-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--green), transparent);
+    }
+
+    .step-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--green);
+      letter-spacing: 0.12em;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .step-num::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .step-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .step-title {
+      font-family: var(--mono);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+
+    .step-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* FEATURES */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .feature-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.75rem;
+      transition: border-color 0.2s;
+    }
+    .feature-card:hover { border-color: var(--green-mid); }
+
+    .feat-icon {
+      width: 42px; height: 42px;
+      border-radius: 8px;
+      background: var(--green-dim);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .feat-title {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .feat-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ALERTS DEMO */
+    .alerts-section {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .alerts-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 6rem clamp(1.5rem, 5vw, 4rem);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    @media (max-width: 720px) {
+      .alerts-inner { grid-template-columns: 1fr; gap: 3rem; }
+      .metrics { grid-template-columns: 1fr; }
+    }
+
+    .alert-mock {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+    }
+
+    .alert-header {
+      background: var(--bg3);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+    }
+
+    .alert-icon { font-size: 1rem; }
+
+    .alert-item {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      gap: 4px;
+    }
+    .alert-item:last-child { border-bottom: none; }
+
+    .alert-status-down { color: var(--red); }
+    .alert-status-up { color: var(--green); }
+    .alert-url { color: var(--muted); font-size: 0.72rem; }
+    .alert-time { color: var(--muted2); font-size: 0.68rem; }
+
+    .alert-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      margin-right: 6px;
+    }
+    .tag-down { background: rgba(255,77,109,0.15); color: var(--red); border: 1px solid rgba(255,77,109,0.3); }
+    .tag-up { background: rgba(32,220,140,0.12); color: var(--green); border: 1px solid rgba(32,220,140,0.3); }
+    .tag-ssl { background: rgba(245,166,35,0.12); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+
+    /* CHANNELS */
+    .channels {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .channel {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+
+    /* PRICING */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .price-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 2.5rem 2rem;
+      position: relative;
+      transition: all 0.25s;
+    }
+    .price-card:hover { transform: translateY(-6px); border-color: var(--green-mid); }
+
+    .price-card.featured {
+      border-color: var(--green-mid);
+      background: linear-gradient(135deg, var(--bg2), rgba(32,220,140,0.04));
+    }
+
+    .featured-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      background: var(--green);
+      color: #040807;
+      padding: 4px 14px;
+      border-radius: 99px;
+      font-weight: 700;
+    }
+
+    .price-name {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .price-amount {
+      font-family: var(--mono);
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+    .price-amount span {
+      font-size: 1.2rem;
+      color: var(--muted);
+    }
+
+    .price-period {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 2rem;
+    }
+
+    .price-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.5rem 0;
+    }
+
+    .price-features { list-style: none; }
+    .price-features li {
+      font-size: 0.875rem;
+      color: var(--muted);
+      padding: 6px 0;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .price-features li::before {
+      content: '→';
+      color: var(--green);
+      font-family: var(--mono);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .price-cta {
+      display: block;
+      text-align: center;
+      margin-top: 2rem;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s;
+      font-family: var(--sans);
+    }
+    .price-cta.outline {
+      border: 1px solid var(--muted2);
+      color: var(--text);
+    }
+    .price-cta.outline:hover { border-color: var(--green-mid); color: var(--green); }
+    .price-cta.solid {
+      background: var(--green);
+      color: #040807;
+      font-weight: 600;
+    }
+    .price-cta.solid:hover { background: #30f0a0; }
+
+    /* REPORTS SECTION */
+    .report-preview {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .rp-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .rp-body { padding: 20px; }
+    .rp-metric { margin-bottom: 16px; }
+    .rp-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; font-family: var(--mono); }
+    .rp-bar-bg { background: var(--bg2); border-radius: 3px; height: 8px; overflow: hidden; border: 1px solid var(--border); }
+    .rp-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--green), #0fa564); }
+
+    /* CTA SECTION */
+    .cta-section {
+      text-align: center;
+      padding: 8rem clamp(1.5rem, 5vw, 4rem);
+      position: relative;
+    }
+    .cta-glow {
+      position: absolute;
+      bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 500px; height: 300px;
+      background: radial-gradient(ellipse, rgba(32,220,140,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-title {
+      font-family: var(--mono);
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin-bottom: 1rem;
+    }
+    .cta-sub { font-size: 1rem; color: var(--muted); margin-bottom: 2.5rem; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem clamp(1.5rem, 5vw, 4rem);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted2);
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* MOBILE */
+    @media (max-width: 520px) {
+      .nav-cta { display: none; }
+      .hero h1 { letter-spacing: -0.02em; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    LunaWatch
+  </div>
+  <div class="nav-right">
+    <button class="lang-toggle" onclick="toggleLang()" id="lang-btn">EN</button>
+    <a href="#pricing" class="nav-cta" data-pt="Começar" data-en="Get Started">Começar</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge" data-pt="✦ MONITORIZAÇÃO EXTERNA · SEM AGENTES · SEM COMPLEXIDADE" data-en="✦ EXTERNAL MONITORING · NO AGENTS · NO COMPLEXITY">
+    ✦ MONITORIZAÇÃO EXTERNA · SEM AGENTES · SEM COMPLEXIDADE
+  </div>
+  <h1>
+    O seu site caiu.<br/> <em>Os seus clientes</em> já sabem.
+  </h1>
+  <p class="hero-sub" data-pt="LunaWatch monitoriza os seus serviços 24/7 do exterior — sem instalar nada na sua infraestrutura. Receba alertas instantâneos antes que os seus clientes notem." data-en="LunaWatch monitors your services 24/7 from the outside — no installation needed on your infrastructure. Get instant alerts before your customers notice anything.">
+    LunaWatch monitoriza os seus serviços 24/7 do exterior — sem instalar nada na sua infraestrutura. Receba alertas instantâneos antes que os seus clientes notem.
+  </p>
+  <div class="hero-actions">
+    <a href="#pricing" class="btn-primary" data-pt="Ver planos" data-en="View plans">Ver planos</a>
+    <a href="#how" class="btn-ghost" data-pt="Como funciona" data-en="How it works">Como funciona</a>
+  </div>
+
+  <!-- TERMINAL WIDGET -->
+  <div class="terminal-wrap">
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="t-dot r"></div>
+        <div class="t-dot y"></div>
+        <div class="t-dot g"></div>
+      </div>
+      <div class="terminal-body">
+        <div class="t-dim">$ lunawatch status --tenant acme-corp</div>
+        <br/>
+        <div class="status-row">
+          <span class="badge-up">UP</span>
+          <span class="t-green">https://acme-corp.com</span>
+          <span class="t-dim">— 142ms</span>
+        </div>
+        <div class="status-row">
+          <span class="badge-up">UP</span>
+          <span class="t-green">https://api.acme-corp.com</span>
+          <span class="t-dim">— 89ms</span>
+        </div>
+        <div class="status-row">
+          <span class="badge-down">DOWN</span>
+          <span class="t-red">https://shop.acme-corp.com</span>
+          <span class="t-dim">— timeout</span>
+        </div>
+        <div class="status-row">
+          <span class="badge-up">UP</span>
+          <span class="t-amber">SSL acme-corp.com</span>
+          <span class="t-dim">— expires in 14d ⚠</span>
+        </div>
+        <br/>
+        <div class="t-muted">▶ <span class="t-red">ALERT</span> dispatched → Telegram @acme-admin <span class="t-dim">[08:14:03Z]</span></div>
+        <div class="t-muted">▶ Incident <span class="t-amber">#INC-0042</span> opened automatically</div>
+        <br/>
+        <span class="t-dim">$ <span class="blink">█</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METRICS ROW -->
+<div class="metrics reveal">
+  <div class="metric-item">
+    <span class="metric-num">30s</span>
+    <span class="metric-label" data-pt="Intervalo de verificação" data-en="Check interval">Intervalo de verificação</span>
+  </div>
+  <div class="metric-item">
+    <span class="metric-num">5min</span>
+    <span class="metric-label" data-pt="Onboarding de novo cliente" data-en="Client onboarding time">Onboarding de novo cliente</span>
+  </div>
+  <div class="metric-item">
+    <span class="metric-num">0</span>
+    <span class="metric-label" data-pt="Agentes instalados no cliente" data-en="Agents installed at client">Agentes instalados no cliente</span>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="content-section">
+  <div class="section-header reveal">
+    <span class="section-label" data-pt="COMO FUNCIONA" data-en="HOW IT WORKS">COMO FUNCIONA</span>
+    <h2 class="section-title" data-pt="Três passos.<br/>Zero fricção." data-en="Three steps.<br/>Zero friction.">Três passos.<br/>Zero fricção.</h2>
+    <p class="section-desc" data-pt="Sem instalar agentes, sem acesso à sua rede interna. Monitorização do exterior, como um utilizador real." data-en="No agents to install, no access to your internal network. Monitoring from the outside, just like a real user.">Sem instalar agentes, sem acesso à sua rede interna. Monitorização do exterior, como um utilizador real.</p>
+  </div>
+
+  <div class="steps">
+    <div class="step-card reveal">
+      <div class="step-num">01</div>
+      <span class="step-icon">⚙️</span>
+      <div class="step-title" data-pt="Configuramos juntos" data-en="We set it up together">Configuramos juntos</div>
+      <p class="step-desc" data-pt="Diz-nos quais os serviços a monitorizar — URL, API, certificado SSL, DNS. Configuramos tudo em menos de 5 minutos." data-en="Tell us which services to monitor — URLs, APIs, SSL certificates, DNS. We configure everything in under 5 minutes.">Diz-nos quais os serviços a monitorizar — URL, API, certificado SSL, DNS. Configuramos tudo em menos de 5 minutos.</p>
+    </div>
+    <div class="step-card reveal">
+      <div class="step-num">02</div>
+      <span class="step-icon">👁️</span>
+      <div class="step-title" data-pt="Monitorizamos 24/7" data-en="We monitor 24/7">Monitorizamos 24/7</div>
+      <p class="step-desc" data-pt="O nosso sistema verifica os seus serviços a cada 30 segundos, todos os dias, durante o ano inteiro. Sem interrupções." data-en="Our system checks your services every 30 seconds, every day, all year long. Without interruptions.">O nosso sistema verifica os seus serviços a cada 30 segundos, todos os dias, durante o ano inteiro. Sem interrupções.</p>
+    </div>
+    <div class="step-card reveal">
+      <div class="step-num">03</div>
+      <span class="step-icon">🔔</span>
+      <div class="step-title" data-pt="Você recebe o alerta" data-en="You get the alert">Você recebe o alerta</div>
+      <p class="step-desc" data-pt="Quando algo falha, recebe notificação imediata no canal que preferir — Telegram, Slack, email ou Discord." data-en="When something fails, you get an immediate notification on your preferred channel — Telegram, Slack, email or Discord.">Quando algo falha, recebe notificação imediata no canal que preferir — Telegram, Slack, email ou Discord.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ALERTS SECTION -->
+<section class="alerts-section">
+  <div class="alerts-inner">
+    <div>
+      <div class="section-header reveal" style="text-align:left; margin-bottom: 1.5rem;">
+        <span class="section-label" data-pt="ALERTAS INSTANTÂNEOS" data-en="INSTANT ALERTS">ALERTAS INSTANTÂNEOS</span>
+        <h2 class="section-title" data-pt="Saiba antes<br/>dos seus clientes." data-en="Know before<br/>your customers do.">Saiba antes<br/>dos seus clientes.</h2>
+        <p class="section-desc" style="margin:1rem 0 0; text-align:left;" data-pt="Alertas nativos enviados directamente para si no momento em que um serviço falha. Sem dashboards para verificar — a informação chega até si." data-en="Native alerts sent directly to you the moment a service fails. No dashboards to check — the information comes to you.">Alertas nativos enviados directamente para si no momento em que um serviço falha. Sem dashboards para verificar — a informação chega até si.</p>
+      </div>
+      <div class="channels reveal">
+        <div class="channel">💬 Telegram</div>
+        <div class="channel">🟣 Slack</div>
+        <div class="channel">📧 <span data-pt="Email" data-en="Email">Email</span></div>
+        <div class="channel">🎮 Discord</div>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="alert-mock">
+        <div class="alert-header">
+          <span class="alert-icon">💬</span>
+          <span>LUNAWATCH · TELEGRAM</span>
+        </div>
+        <div class="alert-item">
+          <div><span class="alert-tag tag-down">DOWN</span> <span class="alert-status-down">shop.acme-corp.com</span></div>
+          <div class="alert-url">HTTPS · Connection timeout after 5000ms</div>
+          <div class="alert-time">Today at 08:14 · Response time: N/A</div>
+        </div>
+        <div class="alert-item">
+          <div><span class="alert-tag tag-ssl">SSL</span> <span class="alert-status-up" style="color: var(--amber);">acme-corp.com</span></div>
+          <div class="alert-url">Certificate expires in 14 days</div>
+          <div class="alert-time">Today at 06:00 · Auto-check</div>
+        </div>
+        <div class="alert-item">
+          <div><span class="alert-tag tag-up">UP</span> <span class="alert-status-up">shop.acme-corp.com</span></div>
+          <div class="alert-url">HTTPS · Recovered · 203ms</div>
+          <div class="alert-time">Today at 08:22 · Downtime: 8min</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="content-section">
+  <div class="section-header reveal">
+    <span class="section-label" data-pt="FUNCIONALIDADES" data-en="FEATURES">FUNCIONALIDADES</span>
+    <h2 class="section-title" data-pt="Tudo o que precisa.<br/>Nada do que não precisa." data-en="Everything you need.<br/>Nothing you don't.">Tudo o que precisa.<br/>Nada do que não precisa.</h2>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <div class="feat-icon">🌐</div>
+      <div class="feat-title" data-pt="HTTP/HTTPS" data-en="HTTP/HTTPS">HTTP/HTTPS</div>
+      <p class="feat-desc" data-pt="Verificação de endpoints, status codes, keywords em páginas e tempo de resposta." data-en="Endpoint verification, status codes, page keywords and response time.">Verificação de endpoints, status codes, keywords em páginas e tempo de resposta.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feat-icon">🔐</div>
+      <div class="feat-title" data-pt="Certificados SSL" data-en="SSL Certificates">Certificados SSL</div>
+      <p class="feat-desc" data-pt="Alerta automático antes da expiração do certificado. Nunca mais perca um renovação." data-en="Automatic alert before certificate expiry. Never miss a renewal again.">Alerta automático antes da expiração do certificado. Nunca mais perca um renovação.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feat-icon">🔍</div>
+      <div class="feat-title">DNS</div>
+      <p class="feat-desc" data-pt="Monitorização de registos DNS. Detecta propagações incorrectas e falhas de resolução." data-en="DNS record monitoring. Detects incorrect propagations and resolution failures.">Monitorização de registos DNS. Detecta propagações incorrectas e falhas de resolução.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feat-icon">🔌</div>
+      <div class="feat-title">TCP</div>
+      <p class="feat-desc" data-pt="Verifica portas e serviços TCP directamente — bases de dados, SMTP, FTP e muito mais." data-en="Checks TCP ports and services directly — databases, SMTP, FTP and much more.">Verifica portas e serviços TCP directamente — bases de dados, SMTP, FTP e muito mais.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title" data-pt="Relatórios PDF mensais" data-en="Monthly PDF Reports">Relatórios PDF mensais</div>
+      <p class="feat-desc" data-pt="Relatório automático enviado por email todos os meses com uptime, disponibilidade e incidentes." data-en="Automatic report sent by email every month with uptime, availability and incidents.">Relatório automático enviado por email todos os meses com uptime, disponibilidade e incidentes.</p>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feat-icon">📈</div>
+      <div class="feat-title" data-pt="Dashboard dedicado" data-en="Dedicated Dashboard">Dashboard dedicado</div>
+      <p class="feat-desc" data-pt="Acesso exclusivo ao seu dashboard Grafana com histórico completo e métricas em tempo real." data-en="Exclusive access to your Grafana dashboard with full history and real-time metrics.">Acesso exclusivo ao seu dashboard Grafana com histórico completo e métricas em tempo real.</p>
+    </div>
+  </div>
+</section>
+
+<!-- REPORTS -->
+<section class="alerts-section">
+  <div class="alerts-inner" style="grid-template-columns: 1fr 1fr;">
+    <div class="reveal">
+      <div class="report-preview">
+        <div class="rp-header">
+          <span>📋 LUNAWATCH REPORT — ABRIL 2025</span>
+          <span class="t-green">✓ PDF</span>
+        </div>
+        <div class="rp-body">
+          <div class="rp-metric">
+            <div class="rp-label">UPTIME — acme-corp.com</div>
+            <div class="rp-bar-bg"><div class="rp-bar-fill" style="width:99.7%"></div></div>
+            <div style="font-family: var(--mono); font-size:0.7rem; color: var(--green); margin-top: 4px;">99.7%</div>
+          </div>
+          <div class="rp-metric">
+            <div class="rp-label">UPTIME — api.acme-corp.com</div>
+            <div class="rp-bar-bg"><div class="rp-bar-fill" style="width:100%"></div></div>
+            <div style="font-family: var(--mono); font-size:0.7rem; color: var(--green); margin-top: 4px;">100%</div>
+          </div>
+          <div class="rp-metric">
+            <div class="rp-label">UPTIME — shop.acme-corp.com</div>
+            <div class="rp-bar-bg"><div class="rp-bar-fill" style="width:98.1%"></div></div>
+            <div style="font-family: var(--mono); font-size:0.7rem; color: var(--amber); margin-top: 4px;">98.1%</div>
+          </div>
+          <div style="margin-top:16px; padding-top: 14px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 0.72rem; color: var(--muted);">
+            <div>Incidents: 2 &nbsp;·&nbsp; Avg response: 134ms &nbsp;·&nbsp; SSL: 14d</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="section-header reveal" style="text-align:left; margin-bottom: 1.5rem;">
+        <span class="section-label" data-pt="RELATÓRIOS MENSAIS" data-en="MONTHLY REPORTS">RELATÓRIOS MENSAIS</span>
+        <h2 class="section-title" data-pt="Prova de valor.<br/>Todos os meses." data-en="Proof of value.<br/>Every month.">Prova de valor.<br/>Todos os meses.</h2>
+        <p class="section-desc" style="margin:1rem 0 0; text-align:left;" data-pt="No fim de cada mês recebe automaticamente um relatório PDF com o estado completo dos seus serviços — uptime, incidentes e tempo de resposta. Perfeito para partilhar com a gestão." data-en="At the end of each month you automatically receive a PDF report with the complete status of your services — uptime, incidents and response time. Perfect to share with management.">No fim de cada mês recebe automaticamente um relatório PDF com o estado completo dos seus serviços — uptime, incidentes e tempo de resposta. Perfeito para partilhar com a gestão.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="content-section">
+  <div class="section-header reveal">
+    <span class="section-label" data-pt="PREÇOS" data-en="PRICING">PREÇOS</span>
+    <h2 class="section-title" data-pt="Simples e transparente." data-en="Simple and transparent.">Simples e transparente.</h2>
+    <p class="section-desc" data-pt="Sem contratos de longo prazo. Cancele quando quiser." data-en="No long-term contracts. Cancel anytime.">Sem contratos de longo prazo. Cancele quando quiser.</p>
+  </div>
+
+  <div class="pricing-grid">
+    <div class="price-card reveal">
+      <div class="price-name" data-pt="STARTER" data-en="STARTER">STARTER</div>
+      <div class="price-amount"><span>€</span>50</div>
+      <div class="price-period" data-pt="por mês" data-en="per month">por mês</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li data-pt="Até 5 endpoints" data-en="Up to 5 endpoints">Até 5 endpoints</li>
+        <li data-pt="HTTP, HTTPS, SSL" data-en="HTTP, HTTPS, SSL">HTTP, HTTPS, SSL</li>
+        <li data-pt="Alertas via Telegram ou Email" data-en="Alerts via Telegram or Email">Alertas via Telegram ou Email</li>
+        <li data-pt="Relatório PDF mensal" data-en="Monthly PDF report">Relatório PDF mensal</li>
+        <li data-pt="Dashboard Grafana" data-en="Grafana Dashboard">Dashboard Grafana</li>
+      </ul>
+      <a href="mailto:hello@lunawatch.io" class="price-cta outline" data-pt="Começar →" data-en="Get started →">Começar →</a>
+    </div>
+
+    <div class="price-card featured reveal">
+      <div class="featured-badge" data-pt="MAIS POPULAR" data-en="MOST POPULAR">MAIS POPULAR</div>
+      <div class="price-name">PRO</div>
+      <div class="price-amount"><span>€</span>100</div>
+      <div class="price-period" data-pt="por mês" data-en="per month">por mês</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li data-pt="Até 20 endpoints" data-en="Up to 20 endpoints">Até 20 endpoints</li>
+        <li data-pt="HTTP, HTTPS, SSL, DNS, TCP" data-en="HTTP, HTTPS, SSL, DNS, TCP">HTTP, HTTPS, SSL, DNS, TCP</li>
+        <li data-pt="Alertas multi-canal (todos)" data-en="Multi-channel alerts (all)">Alertas multi-canal (todos)</li>
+        <li data-pt="Relatório PDF mensal" data-en="Monthly PDF report">Relatório PDF mensal</li>
+        <li data-pt="Dashboard Grafana exclusivo" data-en="Exclusive Grafana Dashboard">Dashboard Grafana exclusivo</li>
+        <li data-pt="Suporte prioritário" data-en="Priority support">Suporte prioritário</li>
+      </ul>
+      <a href="mailto:hello@lunawatch.io" class="price-cta solid" data-pt="Começar →" data-en="Get started →">Começar →</a>
+    </div>
+
+    <div class="price-card reveal">
+      <div class="price-name">ENTERPRISE</div>
+      <div class="price-amount"><span>€</span>200</div>
+      <div class="price-period" data-pt="por mês" data-en="per month">por mês</div>
+      <div class="price-divider"></div>
+      <ul class="price-features">
+        <li data-pt="Endpoints ilimitados" data-en="Unlimited endpoints">Endpoints ilimitados</li>
+        <li data-pt="Todos os protocolos" data-en="All protocols">Todos os protocolos</li>
+        <li data-pt="Todos os canais de alerta" data-en="All alert channels">Todos os canais de alerta</li>
+        <li data-pt="Relatórios personalizados" data-en="Custom reports">Relatórios personalizados</li>
+        <li data-pt="SLA documentado" data-en="Documented SLA">SLA documentado</li>
+        <li data-pt="Onboarding dedicado" data-en="Dedicated onboarding">Onboarding dedicado</li>
+      </ul>
+      <a href="mailto:hello@lunawatch.io" class="price-cta outline" data-pt="Falar connosco →" data-en="Talk to us →">Falar connosco →</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-section">
+  <div class="cta-glow"></div>
+  <div class="reveal">
+    <h2 class="cta-title" data-pt="Pronto para monitorizar?" data-en="Ready to start monitoring?">Pronto para monitorizar?</h2>
+    <p class="cta-sub" data-pt="Configure em menos de 5 minutos. Sem contratos. Sem surpresas." data-en="Set up in under 5 minutes. No contracts. No surprises.">Configure em menos de 5 minutos. Sem contratos. Sem surpresas.</p>
+    <a href="mailto:hello@lunawatch.io" class="btn-primary" data-pt="Entrar em contacto" data-en="Get in touch">Entrar em contacto</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo" style="font-size:0.8rem;">
+    <div class="logo-dot"></div>
+    LunaWatch
+  </div>
+  <span data-pt="© 2025 LunaWatch · Feito em Lisboa 🇵🇹" data-en="© 2025 LunaWatch · Made in Lisbon 🇵🇹">© 2025 LunaWatch · Feito em Lisboa 🇵🇹</span>
+  <span data-pt="Monitorização externa para PMEs" data-en="External monitoring for SMEs">Monitorização externa para PMEs</span>
+</footer>
+
+<script>
+  // ── LANGUAGE TOGGLE ───────────────────────────────────────────────
+  let currentLang = 'pt';
+
+  function toggleLang() {
+    currentLang = currentLang === 'pt' ? 'en' : 'pt';
+    document.getElementById('lang-btn').textContent = currentLang === 'pt' ? 'EN' : 'PT';
+    document.documentElement.lang = currentLang;
+    applyLang(currentLang);
+  }
+
+  function applyLang(lang) {
+    document.querySelectorAll('[data-pt]').forEach(el => {
+      const text = el.getAttribute('data-' + lang);
+      if (!text) return;
+      // Hero h1 and section titles use innerHTML (contain <br/> tags, <em>)
+      if (el.tagName === 'H1' || el.tagName === 'H2') {
+        if (lang === 'en' && el.tagName === 'H1') {
+          el.innerHTML = 'Your site is down.<br/> <em>Your customers</em> already know.';
+        } else if (lang === 'pt' && el.tagName === 'H1') {
+          el.innerHTML = 'O seu site caiu.<br/> <em>Os seus clientes</em> já sabem.';
+        } else {
+          el.innerHTML = text;
+        }
+      } else {
+        el.textContent = text;
+      }
+    });
+  }
+
+  // ── SCROLL REVEAL ─────────────────────────────────────────────────
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+
+<!-- Cloudflare Web Analytics — replace YOUR_TOKEN_HERE with your real token -->
+<!-- Get it at: dash.cloudflare.com → Web Analytics → Add a site -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+  data-cf-beacon='{"token": "YOUR_TOKEN_HERE"}'></script>
+
+</body>
+</html>
