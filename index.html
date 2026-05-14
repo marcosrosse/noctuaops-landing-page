@@ -337,7 +337,7 @@
     ✦ MONITORIZAÇÃO EXTERNA · SEM AGENTES · SEM COMPLEXIDADE
   </div>
 
-  <h1>Vemos tudo.<br/><em>Enquanto dorme.</em></h1>
+  <h1 data-pt="Vemos tudo.<br/><em>Enquanto dorme.</em>" data-en="We see everything.<br/><em>While you sleep.</em>">Vemos tudo.<br/><em>Enquanto dorme.</em></h1>
 
   <p class="hero-sub" data-pt="owlops monitoriza os seus serviços 24/7 do exterior — como uma coruja na noite. Receba alertas instantâneos antes que os seus clientes notem." data-en="owlops monitors your services 24/7 from the outside — like an owl in the night. Get instant alerts before your customers notice anything.">
     owlops monitoriza os seus serviços 24/7 do exterior — como uma coruja na noite. Receba alertas instantâneos antes que os seus clientes notem.
@@ -360,7 +360,7 @@
         <div class="status-row"><span class="badge-up">UP</span><span class="t-violet">https://acme-corp.com</span><span class="t-dim">— 138ms</span></div>
         <div class="status-row"><span class="badge-up">UP</span><span class="t-violet">https://api.acme-corp.com</span><span class="t-dim">— 91ms</span></div>
         <div class="status-row"><span class="badge-down">DOWN</span><span class="t-red">https://shop.acme-corp.com</span><span class="t-dim">— timeout</span></div>
-        <div class="status-row"><span class="badge-warn">SSL</span><span class="t-amber">acme-corp.com</span><span class="t-dim">— expira em 14d ⚠</span></div>
+        <div class="status-row"><span class="badge-warn">SSL</span><span class="t-amber">acme-corp.com</span><span class="t-dim" data-pt="— expira em 14d ⚠" data-en="— expires in 14d ⚠">— expira em 14d ⚠</span></div>
         <br/>
         <div class="t-muted">🦉 <span class="t-red">ALERT</span> → Telegram @acme-admin <span class="t-dim">[02:14:07Z]</span></div>
         <div class="t-muted">🦉 Incident <span class="t-amber">#INC-0042</span> opened automatically</div>
@@ -478,7 +478,7 @@
   <div class="alerts-inner">
     <div class="reveal">
       <div class="report-preview">
-        <div class="rp-header"><span>📋 OWLOPS REPORT — ABRIL 2025</span><span style="color:var(--amber)">✓ PDF</span></div>
+        <div class="rp-header"><span data-pt="📋 OWLOPS REPORT — ABRIL 2025" data-en="📋 OWLOPS REPORT — APRIL 2025">📋 OWLOPS REPORT — ABRIL 2025</span><span style="color:var(--amber)">✓ PDF</span></div>
         <div class="rp-body">
           <div class="rp-metric"><div class="rp-label">UPTIME — acme-corp.com</div><div class="rp-bar-bg"><div class="rp-bar-fill" style="width:99.7%"></div></div><div class="rp-val" style="color:var(--amber)">99.7%</div></div>
           <div class="rp-metric"><div class="rp-label">UPTIME — api.acme-corp.com</div><div class="rp-bar-bg"><div class="rp-bar-fill" style="width:100%"></div></div><div class="rp-val" style="color:var(--amber)">100%</div></div>
@@ -621,9 +621,8 @@
     document.querySelectorAll('[data-pt]').forEach(el => {
       const text = el.getAttribute('data-' + lang);
       if (!text) return;
-      if (el.tagName === 'H1') {
-        el.innerHTML = lang === 'en' ? 'We see everything.<br/><em>While you sleep.</em>' : 'Vemos tudo.<br/><em>Enquanto dorme.</em>';
-      } else if (el.tagName === 'H2') {
+      // Use innerHTML when the value contains HTML tags (br, em, strong, etc.)
+      if (/<[a-z]/i.test(text)) {
         el.innerHTML = text;
       } else {
         el.textContent = text;
