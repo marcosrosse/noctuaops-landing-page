@@ -3,773 +3,768 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>owl-ops — Owl-Ops — Observability & Automation Platform</title>
-  <meta name="description" content="Monitorização externa para PMEs. Sem agentes, sem complexidade. Sabemos antes dos seus clientes." />
+  <title>OwlOps — Relatórios de monitorização enriquecidos com IA</title>
+  <meta name="description" content="OwlOps vigia os seus serviços 24/7 e avisa-o no instante em que algo falha. Todos os meses, um relatório claro com números reais e um resumo executivo escrito por IA." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #080c0e;
-      --bg2: #0d1417;
-      --bg3: #111a1e;
-      --border: rgba(124,92,255,0.18);
-      --green: #7C5CFF;
-      --green-dim: rgba(124,92,255,0.08);
-      --green-mid: rgba(124,92,255,0.4);
-      --amber: #f5a623;
-      --red: #ff4d6d;
-      --text: #e8f0ed;
-      --muted: #5a7268;
-      --muted2: #3a504a;
-      --mono: 'Space Mono', monospace;
-      --sans: 'DM Sans', sans-serif;
+      --bg:      #07070f;
+      --bg2:     #0a0a16;
+      --bg3:     #10101f;
+      --bg4:     #16162a;
+      --bg5:     #1c1c34;
+      --border:        rgba(120,110,220,0.12);
+      --border-bright: rgba(120,110,220,0.26);
+
+      --accent:      #6d4aff;
+      --accent-lt:   #957bff;
+      --accent-dim:  rgba(109,74,255,0.1);
+      --accent-glow: rgba(109,74,255,0.3);
+      --orange:      #ff7a29;
+      --orange-lt:   #ff9a5c;
+      --orange-dim:  rgba(255,122,41,0.1);
+      --teal:        #22c1c3;
+      --green:       #22c55e;
+      --green-dim:   rgba(34,197,94,0.1);
+      --red:         #ef4444;
+      --red-dim:     rgba(239,68,68,0.1);
+      --amber:       #f59e0b;
+
+      --text:        #ecebf7;
+      --text-muted:  #8983a8;
+      --text-dim:    #45405f;
+
+      --sans: 'Inter', system-ui, sans-serif;
     }
 
     html { scroll-behavior: smooth; }
-
     body {
       background: var(--bg);
       color: var(--text);
       font-family: var(--sans);
-      font-weight: 300;
+      font-weight: 400;
       line-height: 1.6;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* NOISE OVERLAY */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.5;
+    /* ── ANNOUNCEMENT BAR ─────────────────────────────────── */
+    .ann-bar {
+      background: linear-gradient(90deg, #4f2fd6, #6d4aff, #ff7a29);
+      padding: 9px 24px;
+      text-align: center;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      color: #fff;
+      position: relative;
+      z-index: 200;
+    }
+    .ann-pill {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border-radius: 99px;
+      padding: 2px 10px;
+      margin-right: 10px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
     }
 
-    /* GRID BG */
-    .grid-bg {
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-      z-index: 0;
-      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 0%, transparent 70%);
-    }
-
-    /* NAV */
+    /* ── NAV ──────────────────────────────────────────────── */
     nav {
-      position: fixed;
+      position: sticky;
       top: 0;
-      left: 0;
-      right: 0;
       z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 clamp(1.5rem, 5vw, 4rem);
-      height: 64px;
-      background: rgba(8, 12, 14, 0.85);
-      backdrop-filter: blur(16px);
+      padding: 0 clamp(1.25rem, 5vw, 5rem);
+      height: 66px;
+      background: rgba(7,7,15,0.82);
+      backdrop-filter: blur(20px) saturate(160%);
       border-bottom: 1px solid var(--border);
     }
 
     .logo {
-      font-family: var(--mono);
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--green);
-      letter-spacing: -0.02em;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 11px;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+    .logo b { color: var(--accent-lt); font-weight: 800; }
+    .logo-mark {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, var(--accent), var(--orange));
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
     }
 
-    .logo-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: pulse-dot 2s ease-in-out infinite;
+    .nav-links {
+      display: flex; align-items: center; gap: 2.25rem; list-style: none;
     }
-
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(32,220,140,0.4); }
-      50% { opacity: 0.7; transform: scale(1.2); box-shadow: 0 0 0 6px rgba(32,220,140,0); }
+    .nav-links a {
+      font-size: 0.875rem; font-weight: 500;
+      color: var(--text-muted); text-decoration: none;
+      transition: color 0.2s;
     }
+    .nav-links a:hover { color: var(--text); }
 
-    .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+    .nav-right { display: flex; align-items: center; gap: 1rem; }
 
     .lang-toggle {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      background: var(--green-dim);
-      border: 1px solid var(--border);
-      color: var(--green);
-      padding: 6px 14px;
-      border-radius: 4px;
-      cursor: pointer;
-      letter-spacing: 0.08em;
-      transition: all 0.2s;
+      font-family: var(--sans); font-size: 0.78rem; font-weight: 600;
+      background: transparent; border: 1px solid var(--border-bright);
+      color: var(--text-muted); padding: 6px 14px; border-radius: 6px;
+      cursor: pointer; letter-spacing: 0.06em; transition: all 0.2s;
     }
-    .lang-toggle:hover {
-      background: rgba(124,92,255,0.18);
-      border-color: var(--green-mid);
-    }
+    .lang-toggle:hover { color: var(--text); border-color: var(--accent); }
 
     .nav-cta {
-      font-family: var(--sans);
-      font-size: 0.85rem;
-      font-weight: 500;
-      background: var(--green);
-      color: #040807;
-      padding: 8px 20px;
-      border-radius: 4px;
-      text-decoration: none;
-      transition: all 0.2s;
-      letter-spacing: 0.01em;
+      font-size: 0.85rem; font-weight: 600;
+      background: var(--accent); color: #fff;
+      padding: 9px 22px; border-radius: 8px;
+      text-decoration: none; transition: all 0.2s;
     }
-    .nav-cta:hover { background: #9A84FF; transform: translateY(-1px); }
+    .nav-cta:hover {
+      background: var(--accent-lt); transform: translateY(-1px);
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
 
-    /* SECTIONS */
-    section { position: relative; z-index: 1; }
-
-    /* HERO */
+    /* ── HERO ─────────────────────────────────────────────── */
     .hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(2rem, 5vw, 5rem);
       align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 8rem clamp(1.5rem, 5vw, 4rem) 6rem;
+      max-width: 1240px; margin: 0 auto;
+      padding: clamp(3.5rem, 7vw, 6.5rem) clamp(1.25rem, 5vw, 5rem) clamp(4rem, 7vw, 7rem);
       position: relative;
     }
-
+    .hero-bg {
+      position: absolute; inset: 0; overflow: hidden;
+      pointer-events: none; z-index: 0;
+    }
+    .hero-bg::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 60% at 70% 10%, black 0%, transparent 70%);
+    }
     .hero-glow {
-      position: absolute;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 400px;
-      background: radial-gradient(ellipse, rgba(32,220,140,0.12) 0%, transparent 70%);
+      position: absolute; top: -140px; right: -80px;
+      width: 760px; height: 620px;
+      background: radial-gradient(ellipse, rgba(109,74,255,0.18) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-glow2 {
+      position: absolute; bottom: -120px; left: -120px;
+      width: 480px; height: 480px;
+      background: radial-gradient(ellipse, rgba(255,122,41,0.08) 0%, transparent 70%);
       pointer-events: none;
     }
 
+    .hero-copy { position: relative; z-index: 1; }
+
     .hero-badge {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.14em;
-      color: var(--green);
-      border: 1px solid var(--border);
-      background: var(--green-dim);
-      padding: 6px 16px;
-      border-radius: 99px;
-      margin-bottom: 2rem;
-      display: inline-block;
-      animation: fadeUp 0.6s ease both;
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em;
+      color: var(--accent-lt);
+      border: 1px solid rgba(109,74,255,0.3);
+      background: rgba(109,74,255,0.08);
+      padding: 6px 14px; border-radius: 99px;
+      margin-bottom: 1.75rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .badge-live {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent-lt);
+      animation: pulseDot 2s ease-in-out infinite;
+    }
+    @keyframes pulseDot {
+      0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(109,74,255,0.5); }
+      50%      { opacity:0.7; box-shadow:0 0 0 6px rgba(109,74,255,0); }
     }
 
     .hero h1 {
-      font-family: var(--mono);
-      font-size: clamp(2rem, 5.5vw, 4.2rem);
-      font-weight: 700;
-      line-height: 1.1;
-      letter-spacing: -0.04em;
-      max-width: 14ch;
-      margin: 0 auto 1.5rem;
-      animation: fadeUp 0.6s ease 0.1s both;
+      font-size: clamp(2.3rem, 4.4vw, 3.6rem);
+      font-weight: 800; line-height: 1.08;
+      letter-spacing: -0.035em;
+      margin-bottom: 1.4rem;
+      animation: fadeUp 0.5s ease 0.1s both;
     }
-
     .hero h1 em {
       font-style: normal;
-      color: var(--green);
+      background: linear-gradient(120deg, var(--accent-lt) 0%, var(--orange) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .hero-sub {
-      font-size: clamp(1rem, 2vw, 1.2rem);
-      color: var(--muted);
-      max-width: 52ch;
-      margin: 0 auto 3rem;
-      font-weight: 400;
-      animation: fadeUp 0.6s ease 0.2s both;
+      font-size: clamp(1rem, 1.4vw, 1.12rem);
+      color: var(--text-muted); max-width: 46ch;
+      margin-bottom: 2.25rem; font-weight: 400; line-height: 1.7;
+      animation: fadeUp 0.5s ease 0.2s both;
     }
 
     .hero-actions {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
-      animation: fadeUp 0.6s ease 0.3s both;
+      display: flex; gap: 0.9rem; flex-wrap: wrap;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.5s ease 0.3s both;
     }
 
     .btn-primary {
-      font-family: var(--sans);
-      font-weight: 600;
-      font-size: 0.95rem;
-      background: var(--green);
-      color: #040807;
-      padding: 14px 32px;
-      border-radius: 4px;
-      text-decoration: none;
-      transition: all 0.2s;
-      letter-spacing: 0.01em;
+      font-weight: 600; font-size: 0.95rem;
+      background: var(--accent); color: #fff;
+      padding: 13px 28px; border-radius: 9px;
+      text-decoration: none; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 8px;
     }
-    .btn-primary:hover { background: #9A84FF; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(32,220,140,0.25); }
-
+    .btn-primary:hover {
+      background: var(--accent-lt); transform: translateY(-2px);
+      box-shadow: 0 8px 32px var(--accent-glow);
+    }
     .btn-ghost {
-      font-family: var(--sans);
-      font-weight: 500;
-      font-size: 0.95rem;
-      background: transparent;
-      color: var(--text);
-      padding: 14px 32px;
-      border-radius: 4px;
-      text-decoration: none;
-      border: 1px solid var(--muted2);
+      font-weight: 500; font-size: 0.95rem;
+      background: transparent; color: var(--text);
+      padding: 13px 28px; border-radius: 9px;
+      text-decoration: none; border: 1px solid var(--border-bright);
       transition: all 0.2s;
     }
-    .btn-ghost:hover { border-color: var(--green-mid); color: var(--green); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent-lt); }
 
-    /* TERMINAL WIDGET */
-    .terminal-wrap {
-      margin: 5rem auto 0;
-      max-width: 680px;
-      animation: fadeUp 0.6s ease 0.4s both;
+    .hero-trust {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 0.55rem 1.25rem;
+      font-size: 0.8rem; color: var(--text-muted);
+      animation: fadeUp 0.5s ease 0.4s both;
     }
+    .hero-trust b { color: var(--text); font-weight: 600; }
+    .hero-trust .dot { color: var(--text-dim); }
 
-    .terminal {
-      background: #070b0d;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      font-family: var(--mono);
-      font-size: 0.8rem;
+    /* ── REPORT MOCK (hero) ───────────────────────────────── */
+    .hero-visual {
+      position: relative; z-index: 1;
+      animation: fadeUp 0.6s ease 0.35s both;
     }
-
-    .terminal-bar {
+    .report-doc {
       background: var(--bg3);
+      border: 1px solid var(--border-bright);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px var(--border), 0 -2px 60px rgba(109,74,255,0.12);
+    }
+    .rd-chrome {
+      background: var(--bg4);
+      padding: 11px 16px;
+      display: flex; align-items: center; gap: 10px;
       border-bottom: 1px solid var(--border);
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
-    .t-dot { width: 10px; height: 10px; border-radius: 50%; }
-    .t-dot.r { background: #ff5f57; }
-    .t-dot.y { background: #febc2e; }
-    .t-dot.g { background: #28c840; }
-
-    .terminal-body { padding: 20px; line-height: 1.8; }
-    .t-muted { color: var(--muted); }
-    .t-green { color: var(--green); }
-    .t-amber { color: var(--amber); }
-    .t-red { color: var(--red); }
-    .t-dim { color: var(--muted2); }
-
-    .blink { animation: blink 1s step-end infinite; }
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-    /* STATUS BADGES */
-    .status-row {
-      display: flex; align-items: center; gap: 10px; margin: 4px 0;
+    .rd-dots { display: flex; gap: 6px; }
+    .rd-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .rd-dot.r { background: #ff5f57; } .rd-dot.y { background: #febc2e; } .rd-dot.g { background: #28c840; }
+    .rd-url {
+      flex: 1; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 5px; padding: 4px 12px;
+      font-size: 0.66rem; color: var(--text-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .badge-up {
-      background: rgba(32,220,140,0.12);
-      color: var(--green);
-      border: 1px solid rgba(32,220,140,0.3);
-      padding: 1px 8px;
-      border-radius: 3px;
-      font-size: 0.68rem;
-      letter-spacing: 0.08em;
+    .rd-body { padding: 22px 22px 24px; }
+
+    .rd-head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 1rem; padding-bottom: 16px; margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
     }
-    .badge-down {
-      background: rgba(255,77,109,0.12);
-      color: var(--red);
-      border: 1px solid rgba(255,77,109,0.3);
-      padding: 1px 8px;
-      border-radius: 3px;
-      font-size: 0.68rem;
-      letter-spacing: 0.08em;
+    .rd-tenant { font-size: 1.02rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+    .rd-period { font-size: 0.72rem; color: var(--text-muted); }
+    .rd-stamp {
+      font-size: 0.6rem; background: var(--green-dim); color: var(--green);
+      border: 1px solid rgba(34,197,94,0.25);
+      padding: 4px 10px; border-radius: 99px; font-weight: 700;
+      white-space: nowrap; letter-spacing: 0.04em;
     }
 
-    /* METRICS ROW */
-    .metrics {
-      margin: 4rem auto;
-      max-width: 960px;
-      padding: 0 clamp(1.5rem, 5vw, 4rem);
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1px;
-      background: var(--border);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
+    .rd-aiblock {
+      background: linear-gradient(135deg, rgba(109,74,255,0.1), rgba(255,122,41,0.05));
+      border: 1px solid rgba(109,74,255,0.25);
+      border-radius: 10px;
+      padding: 14px 16px; margin-bottom: 18px;
+    }
+    .rd-ailabel {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--accent-lt); margin-bottom: 9px;
+    }
+    .rd-ailabel .spark { font-size: 0.75rem; }
+    .rd-ai-line { height: 7px; border-radius: 99px; background: rgba(236,235,247,0.16); margin-bottom: 7px; }
+    .rd-ai-line.w1 { width: 100%; } .rd-ai-line.w2 { width: 92%; }
+    .rd-ai-line.w3 { width: 78%; } .rd-ai-line.w4 { width: 60%; margin-bottom: 0; }
+
+    .rd-section-title {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.09em;
+      text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px;
     }
 
-    .metric-item {
-      background: var(--bg2);
-      padding: 2.5rem 2rem;
-      text-align: center;
+    .rd-table { border: 1px solid var(--border); border-radius: 9px; overflow: hidden; margin-bottom: 18px; }
+    .rd-thead, .rd-trow {
+      display: grid; grid-template-columns: 1.6fr 1fr 1fr 0.9fr;
+      padding: 7px 12px; align-items: center;
     }
+    .rd-thead {
+      font-size: 0.56rem; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--text-dim); border-bottom: 1px solid var(--border); background: var(--bg4);
+    }
+    .rd-trow { font-size: 0.7rem; border-bottom: 1px solid var(--border); }
+    .rd-trow:last-child { border-bottom: none; }
+    .rd-trow span:first-child { color: var(--text); font-weight: 500; }
+    .rd-trow span { color: var(--text-muted); }
+    .rd-trow .v-g { color: var(--green); }
+    .rd-trow .v-a { color: var(--amber); }
 
-    .metric-num {
-      font-family: var(--mono);
-      font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 700;
-      color: var(--green);
-      display: block;
-      line-height: 1;
-      margin-bottom: 0.5rem;
+    .rd-panel {
+      border: 1px solid var(--border); border-radius: 9px; overflow: hidden;
     }
+    .rd-panel-top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 12px; background: var(--bg4); border-bottom: 1px solid var(--border);
+    }
+    .rd-panel-title { font-size: 0.7rem; font-weight: 600; color: var(--text); }
+    .rd-panel-unit { font-size: 0.6rem; color: var(--text-muted); }
+    .rd-chart-wrap { height: 92px; padding: 8px 4px 0; }
+    svg.chart { width: 100%; height: 100%; display: block; }
 
-    .metric-label {
-      font-size: 0.85rem;
-      color: var(--muted);
-      letter-spacing: 0.04em;
-    }
-
-    /* HOW IT WORKS */
-    .section-header {
-      text-align: center;
-      margin-bottom: 4rem;
-    }
-    .section-label {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.14em;
-      color: var(--green);
-      margin-bottom: 1rem;
-      display: block;
-    }
-    .section-title {
-      font-family: var(--mono);
-      font-size: clamp(1.6rem, 3.5vw, 2.6rem);
-      font-weight: 700;
-      letter-spacing: -0.04em;
-      line-height: 1.15;
-    }
-    .section-desc {
-      font-size: 1rem;
-      color: var(--muted);
-      margin-top: 1rem;
-      max-width: 50ch;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .content-section {
-      padding: 6rem clamp(1.5rem, 5vw, 4rem);
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-
-    /* STEPS */
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .step-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 2rem;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-    .step-card:hover {
-      border-color: var(--green-mid);
-      transform: translateY(-4px);
-    }
-    .step-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--green), transparent);
-    }
-
-    .step-num {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--green);
-      letter-spacing: 0.12em;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .step-num::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    .step-icon {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      display: block;
-    }
-
-    .step-title {
-      font-family: var(--mono);
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 0.75rem;
-      color: var(--text);
-    }
-
-    .step-desc {
-      font-size: 0.9rem;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
-    /* FEATURES */
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1rem;
-    }
-
-    .feature-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.75rem;
-      transition: border-color 0.2s;
-    }
-    .feature-card:hover { border-color: var(--green-mid); }
-
-    .feat-icon {
-      width: 42px; height: 42px;
-      border-radius: 8px;
-      background: var(--green-dim);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      margin-bottom: 1.25rem;
-    }
-
-    .feat-title {
-      font-family: var(--mono);
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      color: var(--text);
-    }
-
-    .feat-desc {
-      font-size: 0.875rem;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
-    /* ALERTS DEMO */
-    .alerts-section {
+    /* ── STATS BAR ────────────────────────────────────────── */
+    .stats-bar {
       background: var(--bg2);
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
     }
-
-    .alerts-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 6rem clamp(1.5rem, 5vw, 4rem);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4rem;
-      align-items: center;
+    .stats-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 clamp(1.25rem,5vw,5rem);
+      display: grid; grid-template-columns: repeat(4,1fr);
     }
-
-    @media (max-width: 720px) {
-      .alerts-inner { grid-template-columns: 1fr; gap: 3rem; }
-      .metrics { grid-template-columns: 1fr; }
+    .stat-item {
+      padding: 2.75rem 1.5rem; text-align: center;
+      border-right: 1px solid var(--border);
     }
-
-    .alert-mock {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      font-family: var(--mono);
-      font-size: 0.78rem;
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-size: clamp(1.7rem,3.2vw,2.5rem);
+      font-weight: 800; display: block; line-height: 1; margin-bottom: 0.55rem;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text), var(--accent-lt));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
+    .stat-label { font-size: 0.82rem; color: var(--text-muted); }
 
-    .alert-header {
-      background: var(--bg3);
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--muted);
-      font-size: 0.72rem;
-      letter-spacing: 0.06em;
+    /* ── SHARED SECTION SCAFFOLDING ───────────────────────── */
+    .content-section {
+      max-width: 1200px; margin: 0 auto;
+      padding: clamp(4.5rem,8vw,7rem) clamp(1.25rem,5vw,5rem);
     }
-
-    .alert-icon { font-size: 1rem; }
-
-    .alert-item {
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
-      display: grid;
-      gap: 4px;
+    .sec-eyebrow {
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.12em; color: var(--accent-lt);
+      text-transform: uppercase; margin-bottom: 1rem; display: block;
     }
-    .alert-item:last-child { border-bottom: none; }
-
-    .alert-status-down { color: var(--red); }
-    .alert-status-up { color: var(--green); }
-    .alert-url { color: var(--muted); font-size: 0.72rem; }
-    .alert-time { color: var(--muted2); font-size: 0.68rem; }
-
-    .alert-tag {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 3px;
-      font-size: 0.65rem;
-      letter-spacing: 0.08em;
-      margin-right: 6px;
+    .sec-title {
+      font-size: clamp(1.8rem,3.6vw,2.8rem);
+      font-weight: 800; letter-spacing: -0.035em; line-height: 1.12;
+      margin-bottom: 1.1rem;
     }
-    .tag-down { background: rgba(255,77,109,0.15); color: var(--red); border: 1px solid rgba(255,77,109,0.3); }
-    .tag-up { background: rgba(32,220,140,0.12); color: var(--green); border: 1px solid rgba(32,220,140,0.3); }
-    .tag-ssl { background: rgba(245,166,35,0.12); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
-
-    /* CHANNELS */
-    .channels {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-top: 1.5rem;
+    .sec-title em {
+      font-style: normal;
+      background: linear-gradient(120deg, var(--accent-lt), var(--orange));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
-    .channel {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 0.82rem;
-      color: var(--text);
-    }
+    .sec-desc { font-size: 1.02rem; color: var(--text-muted); max-width: 52ch; line-height: 1.7; }
+    .sec-hdr-center { text-align: center; margin-bottom: 3.5rem; max-width: 720px; margin-left: auto; margin-right: auto; }
+    .sec-hdr-center .sec-desc { margin: 0 auto; }
 
-    /* PRICING */
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-top: 3rem;
+    /* ── STEPS ────────────────────────────────────────────── */
+    .steps {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem;
     }
+    .step-card {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 14px; padding: 2rem;
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+      position: relative; overflow: hidden;
+    }
+    .step-card::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+    .step-card:hover {
+      border-color: rgba(109,74,255,0.4);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 50px rgba(109,74,255,0.1);
+    }
+    .step-n {
+      font-size: 2.6rem; font-weight: 800;
+      color: var(--text-dim); line-height: 1; margin-bottom: 1.25rem; display: block;
+      letter-spacing: -0.04em;
+    }
+    .step-icon-box {
+      width: 46px; height: 46px;
+      background: var(--accent-dim); border: 1px solid rgba(109,74,255,0.2);
+      border-radius: 11px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 1.25rem;
+    }
+    .step-title {
+      font-size: 1.08rem; font-weight: 700;
+      margin-bottom: 0.65rem; color: var(--text); letter-spacing: -0.01em;
+    }
+    .step-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; }
 
-    .price-card {
+    /* ── SPLIT SECTIONS ───────────────────────────────────── */
+    .split-section {
       background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 2.5rem 2rem;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .split-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: clamp(4.5rem,8vw,7rem) clamp(1.25rem,5vw,5rem);
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: clamp(2.5rem,5vw,5rem); align-items: center;
+    }
+    .split-inner.rev .split-visual { order: -1; }
+
+    /* AI summary mock */
+    .ai-mock {
+      background: var(--bg3); border: 1px solid var(--border-bright);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+    }
+    .ai-mock-top {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 18px; background: var(--bg4); border-bottom: 1px solid var(--border);
+    }
+    .ai-avatar {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--orange));
+      display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+    }
+    .ai-mock-title { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+    .ai-mock-sub { font-size: 0.62rem; color: var(--text-muted); }
+    .ai-mock-body { padding: 18px; }
+    .ai-mock-body p {
+      font-size: 0.85rem; color: var(--text); line-height: 1.75; margin-bottom: 0.85rem;
+    }
+    .ai-mock-body p:last-child { margin-bottom: 0; color: var(--text-muted); }
+    .ai-mock-body em { font-style: normal; color: var(--accent-lt); font-weight: 600; }
+    .ai-mock-foot {
+      padding: 11px 18px; border-top: 1px solid var(--border);
+      font-size: 0.64rem; color: var(--text-dim);
+      display: flex; gap: 16px; flex-wrap: wrap;
+    }
+    .ai-tags { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.75rem; }
+    .ai-tag {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 14px; background: var(--bg4);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px; font-size: 0.8rem; color: var(--text); font-weight: 500;
+    }
+
+    /* delivery mock */
+    .deliver-mock {
+      background: var(--bg3); border: 1px solid var(--border-bright);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+    }
+    .dm-head {
+      background: var(--bg4); padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .dm-icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: linear-gradient(135deg, #ea4335, #c5221f);
+      display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+    }
+    .dm-title { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+    .dm-sub { font-size: 0.62rem; color: var(--text-muted); }
+    .dm-body { padding: 18px; }
+    .dm-subject { font-size: 0.86rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .dm-meta { font-size: 0.66rem; color: var(--text-muted); margin-bottom: 14px; }
+    .dm-text { font-size: 0.8rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 14px; }
+    .dm-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent); color: #fff; font-weight: 600;
+      font-size: 0.8rem; padding: 9px 18px; border-radius: 8px; text-decoration: none;
+    }
+    .dm-divider { height: 1px; background: var(--border); margin: 16px 0; }
+    .dm-cmd {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.72rem; color: var(--text-muted);
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 7px; padding: 9px 12px;
+    }
+    .dm-cmd b { color: var(--accent-lt); font-weight: 600; }
+
+    /* incident alert mock */
+    .alert-mock {
+      background: var(--bg3); border: 1px solid var(--border-bright);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+    }
+    .al-head {
+      background: var(--bg4); padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .al-icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--orange));
+      display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+    }
+    .al-title { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+    .al-sub { font-size: 0.62rem; color: var(--text-muted); }
+    .al-item { padding: 13px 18px; border-bottom: 1px solid var(--border); }
+    .al-item:last-child { border-bottom: none; }
+    .al-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+    .al-tag {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 2px 9px; border-radius: 5px;
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.05em;
+    }
+    .al-tag.dn { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+    .al-tag.up { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+    .al-tag.wn { background: rgba(245,158,11,0.1); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+    .al-time { font-size: 0.6rem; color: var(--text-dim); }
+    .al-host { font-size: 0.8rem; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .al-detail { font-size: 0.7rem; color: var(--text-muted); }
+
+    /* ── FEATURES GRID ────────────────────────────────────── */
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+    }
+    .feat-card {
+      background: var(--bg3); padding: 2rem;
+      transition: background 0.2s;
       position: relative;
-      transition: all 0.25s;
     }
-    .price-card:hover { transform: translateY(-6px); border-color: var(--green-mid); }
+    .feat-card:hover { background: var(--bg4); }
+    .feat-icon {
+      width: 44px; height: 44px;
+      background: var(--accent-dim); border: 1px solid rgba(109,74,255,0.2);
+      border-radius: 10px; display: flex; align-items: center;
+      justify-content: center; font-size: 1.2rem; margin-bottom: 1.25rem;
+    }
+    .feat-title {
+      font-size: 0.98rem; font-weight: 700;
+      margin-bottom: 0.5rem; color: var(--text); letter-spacing: -0.01em;
+    }
+    .feat-desc { font-size: 0.86rem; color: var(--text-muted); line-height: 1.7; }
 
+    /* ── PRICING ──────────────────────────────────────────── */
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 1.5rem; margin-top: 3rem;
+    }
+    .price-card {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 14px; padding: 2.5rem 2rem; position: relative;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    }
+    .price-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--border-bright);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    }
     .price-card.featured {
-      border-color: var(--green-mid);
-      background: linear-gradient(135deg, var(--bg2), rgba(32,220,140,0.04));
+      border-color: rgba(109,74,255,0.45);
+      background: linear-gradient(160deg, var(--bg3), rgba(109,74,255,0.05));
     }
-
-    .featured-badge {
-      position: absolute;
-      top: -12px;
-      left: 50%;
+    .price-card.featured:hover {
+      border-color: var(--accent);
+      box-shadow: 0 24px 60px rgba(109,74,255,0.18);
+    }
+    .feat-badge {
+      position: absolute; top: -14px; left: 50%;
       transform: translateX(-50%);
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      background: var(--green);
-      color: #040807;
-      padding: 4px 14px;
-      border-radius: 99px;
-      font-weight: 700;
+      font-size: 0.62rem; font-weight: 800;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      background: linear-gradient(135deg, var(--accent), var(--orange));
+      color: #fff; padding: 5px 16px; border-radius: 99px; white-space: nowrap;
     }
-
-    .price-name {
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      margin-bottom: 1rem;
+    .price-tier {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+      color: var(--text-muted); text-transform: uppercase; margin-bottom: 1.5rem;
     }
-
     .price-amount {
-      font-family: var(--mono);
-      font-size: 3rem;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1;
-      margin-bottom: 0.25rem;
+      font-size: 3.2rem; font-weight: 800;
+      color: var(--text); line-height: 1; letter-spacing: -0.04em; margin-bottom: 0.25rem;
     }
-    .price-amount span {
-      font-size: 1.2rem;
-      color: var(--muted);
-    }
-
-    .price-period {
-      font-size: 0.82rem;
-      color: var(--muted);
-      margin-bottom: 2rem;
-    }
-
-    .price-divider {
-      height: 1px;
-      background: var(--border);
-      margin: 1.5rem 0;
-    }
+    .price-amount sup { font-size: 1.3rem; vertical-align: super; color: var(--text-muted); }
+    .price-period { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 2rem; }
+    .price-divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
 
     .price-features { list-style: none; }
     .price-features li {
-      font-size: 0.875rem;
-      color: var(--muted);
-      padding: 6px 0;
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
+      font-size: 0.875rem; color: var(--text-muted);
+      padding: 8px 0; display: flex; gap: 10px; align-items: flex-start;
+      border-bottom: 1px solid var(--border);
     }
-    .price-features li::before {
-      content: '→';
-      color: var(--green);
-      font-family: var(--mono);
-      flex-shrink: 0;
-      margin-top: 1px;
+    .price-features li:last-child { border-bottom: none; }
+    .check {
+      width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px;
+      background: var(--green-dim); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--green); font-size: 0.55rem;
     }
 
     .price-cta {
-      display: block;
-      text-align: center;
-      margin-top: 2rem;
-      padding: 12px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: 500;
-      text-decoration: none;
-      transition: all 0.2s;
-      font-family: var(--sans);
+      display: block; text-align: center; margin-top: 2rem;
+      padding: 13px; border-radius: 8px;
+      font-size: 0.9rem; font-weight: 600;
+      text-decoration: none; transition: all 0.2s;
     }
     .price-cta.outline {
-      border: 1px solid var(--muted2);
-      color: var(--text);
+      border: 1px solid var(--border-bright); color: var(--text);
     }
-    .price-cta.outline:hover { border-color: var(--green-mid); color: var(--green); }
-    .price-cta.solid {
-      background: var(--green);
-      color: #040807;
-      font-weight: 600;
+    .price-cta.outline:hover {
+      border-color: var(--accent); color: var(--accent-lt);
+      background: var(--accent-dim);
     }
-    .price-cta.solid:hover { background: #9A84FF; }
+    .price-cta.solid { background: var(--accent); color: #fff; }
+    .price-cta.solid:hover {
+      background: var(--accent-lt);
+      box-shadow: 0 8px 30px var(--accent-glow);
+    }
+    .price-note { text-align: center; font-size: 0.82rem; color: var(--text-muted); margin-top: 2.5rem; }
 
-    /* REPORTS SECTION */
-    .report-preview {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
+    /* ── CTA BANNER ───────────────────────────────────────── */
+    .cta-banner {
+      background: linear-gradient(135deg, #160d33 0%, #0d0824 50%, #1a0f08 100%);
+      border-top: 1px solid rgba(109,74,255,0.2);
+      border-bottom: 1px solid rgba(109,74,255,0.2);
+      text-align: center; padding: clamp(5rem,9vw,8rem) clamp(1.25rem,5vw,5rem);
+      position: relative; overflow: hidden;
     }
-    .rp-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .rp-body { padding: 20px; }
-    .rp-metric { margin-bottom: 16px; }
-    .rp-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; font-family: var(--mono); }
-    .rp-bar-bg { background: var(--bg2); border-radius: 3px; height: 8px; overflow: hidden; border: 1px solid var(--border); }
-    .rp-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--green), #0fa564); }
-
-    /* CTA SECTION */
-    .cta-section {
-      text-align: center;
-      padding: 8rem clamp(1.5rem, 5vw, 4rem);
-      position: relative;
-    }
-    .cta-glow {
-      position: absolute;
-      bottom: 0; left: 50%; transform: translateX(-50%);
-      width: 500px; height: 300px;
-      background: radial-gradient(ellipse, rgba(32,220,140,0.1) 0%, transparent 70%);
+    .cta-banner::before {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 900px; height: 500px;
+      background: radial-gradient(ellipse, rgba(109,74,255,0.2) 0%, transparent 65%);
       pointer-events: none;
     }
     .cta-title {
-      font-family: var(--mono);
-      font-size: clamp(1.8rem, 4vw, 3.2rem);
-      font-weight: 700;
-      letter-spacing: -0.04em;
-      margin-bottom: 1rem;
+      font-size: clamp(2rem, 4.2vw, 3.2rem);
+      font-weight: 800; letter-spacing: -0.035em;
+      margin-bottom: 1rem; position: relative; z-index: 1;
     }
-    .cta-sub { font-size: 1rem; color: var(--muted); margin-bottom: 2.5rem; }
+    .cta-sub {
+      font-size: 1.02rem; color: var(--text-muted);
+      margin-bottom: 2.25rem; position: relative; z-index: 1;
+      max-width: 50ch; margin-left: auto; margin-right: auto;
+    }
+    .cta-actions {
+      display: flex; gap: 1rem; justify-content: center;
+      flex-wrap: wrap; position: relative; z-index: 1;
+    }
 
-    /* FOOTER */
+    /* ── FOOTER ───────────────────────────────────────────── */
     footer {
-      border-top: 1px solid var(--border);
-      padding: 2rem clamp(1.5rem, 5vw, 4rem);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      color: var(--muted2);
+      background: var(--bg); border-top: 1px solid var(--border);
+      padding: 4rem clamp(1.25rem,5vw,5rem) 2rem;
+    }
+    .footer-grid {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 4rem; margin-bottom: 3.5rem;
+    }
+    .footer-desc { font-size: 0.875rem; color: var(--text-muted); line-height: 1.7; max-width: 30ch; margin-top: 1rem; }
+    .footer-col-title {
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 1.25rem;
+    }
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: 0.75rem; }
+    .footer-links a { font-size: 0.875rem; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-bottom {
+      max-width: 1200px; margin: 0 auto;
+      padding-top: 2rem; border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 1rem;
+      font-size: 0.78rem; color: var(--text-dim);
     }
 
-    /* ANIMATIONS */
+    /* ── ANIMATIONS ───────────────────────────────────────── */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(24px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-
     .reveal {
-      opacity: 0;
-      transform: translateY(24px);
+      opacity: 0; transform: translateY(24px);
       transition: opacity 0.6s ease, transform 0.6s ease;
     }
-    .reveal.visible {
-      opacity: 1;
-      transform: none;
-    }
+    .reveal.visible { opacity: 1; transform: none; }
 
-    /* MOBILE */
-    @media (max-width: 520px) {
-      .nav-cta { display: none; }
-      .hero h1 { letter-spacing: -0.02em; }
+    /* ── RESPONSIVE ───────────────────────────────────────── */
+    @media (max-width: 940px) {
+      .hero            { grid-template-columns: 1fr; gap: 3rem; text-align: center; }
+      .hero-copy       { display: flex; flex-direction: column; align-items: center; }
+      .hero-sub        { max-width: 52ch; }
+      .hero-visual     { max-width: 520px; width: 100%; margin: 0 auto; }
+      .steps           { grid-template-columns: 1fr; }
+      .split-inner     { grid-template-columns: 1fr; gap: 3rem; }
+      .split-inner.rev .split-visual { order: 0; }
+      .features-grid   { grid-template-columns: 1fr; }
+      .pricing-grid    { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; }
+      .stats-inner     { grid-template-columns: repeat(2,1fr); }
+      .footer-grid     { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+    }
+    @media (max-width: 600px) {
+      .nav-links, .nav-cta { display: none; }
+      .stats-inner { grid-template-columns: 1fr 1fr; }
+      .stat-item { padding: 2rem 1rem; }
+      .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
     }
   </style>
 </head>
 <body>
 
-<div class="grid-bg"></div>
+<!-- ANNOUNCEMENT BAR -->
+<div class="ann-bar">
+  <span class="ann-pill" data-pt="NOVO" data-en="NEW">NOVO</span>
+  <span data-pt="✦ Resumo executivo escrito por IA em cada relatório mensal" data-en="✦ An AI-written executive summary in every monthly report">✦ Resumo executivo escrito por IA em cada relatório mensal</span>
+</div>
 
 <!-- NAV -->
 <nav>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    owl-ops
-  </div>
+  <a href="#" class="logo">
+    <div class="logo-mark">🦉</div>
+    Owl<b>Ops</b>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how" data-pt="Como funciona" data-en="How it works">Como funciona</a></li>
+    <li><a href="#alerts" data-pt="Alertas" data-en="Alerts">Alertas</a></li>
+    <li><a href="#ai" data-pt="IA" data-en="AI">IA</a></li>
+    <li><a href="#features" data-pt="Funcionalidades" data-en="Features">Funcionalidades</a></li>
+    <li><a href="#pricing" data-pt="Preços" data-en="Pricing">Preços</a></li>
+  </ul>
   <div class="nav-right">
     <button class="lang-toggle" onclick="toggleLang()" id="lang-btn">EN</button>
     <a href="#pricing" class="nav-cta" data-pt="Começar" data-en="Get Started">Começar</a>
@@ -778,144 +773,237 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-glow"></div>
-  <div class="hero-badge" data-pt="✦ OBSERVABILITY · AUTOMATION · KUBERNETES · SRE" data-en="✦ EXTERNAL MONITORING · NO AGENTS · NO COMPLEXITY">
-    ✦ OBSERVABILITY · AUTOMATION · KUBERNETES · SRE
-  </div>
-  <h1>
-    Observability.<br/><em>Automation.</em> Peace of mind.
-  </h1>
-  <p class="hero-sub" data-pt="owl-ops monitoriza os seus serviços 24/7 do exterior — sem instalar nada na sua infraestrutura. Receba alertas instantâneos antes que os seus clientes notem." data-en="owl-ops monitors your services 24/7 from the outside — no installation needed on your infrastructure. Get instant alerts before your customers notice anything.">
-    owl-ops monitoriza os seus serviços 24/7 do exterior — sem instalar nada na sua infraestrutura. Receba alertas instantâneos antes que os seus clientes notem.
-  </p>
-  <div class="hero-actions">
-    <a href="#pricing" class="btn-primary" data-pt="Ver planos" data-en="View plans">Ver planos</a>
-    <a href="#how" class="btn-ghost" data-pt="Como funciona" data-en="How it works">Como funciona</a>
+  <div class="hero-bg">
+    <div class="hero-glow"></div>
+    <div class="hero-glow2"></div>
   </div>
 
-  <!-- TERMINAL WIDGET -->
-  <div class="terminal-wrap">
-    <div class="terminal">
-      <div class="terminal-bar">
-        <div class="t-dot r"></div>
-        <div class="t-dot y"></div>
-        <div class="t-dot g"></div>
+  <div class="hero-copy">
+    <div class="hero-badge">
+      <div class="badge-live"></div>
+      <span data-pt="MONITORIZAÇÃO · ALERTAS · RELATÓRIOS" data-en="MONITORING · ALERTS · REPORTS">MONITORIZAÇÃO · ALERTAS · RELATÓRIOS</span>
+    </div>
+
+    <h1>
+      <span data-pt-html="Avisamos quando algo falha.<br/><em>E explicamos todos os meses.</em>" data-en-html="We alert you when something breaks.<br/><em>And explain it every month.</em>">Avisamos quando algo falha.<br/><em>E explicamos todos os meses.</em></span>
+    </h1>
+
+    <p class="hero-sub" data-pt="O OwlOps vigia os seus serviços 24/7 e avisa-o no instante em que algo falha. E no fim de cada mês entrega um relatório claro, com números reais e um resumo executivo escrito por IA." data-en="OwlOps watches your services 24/7 and alerts you the moment something breaks. And at the end of each month it delivers one clear report, with real numbers and an AI-written executive summary.">
+      O OwlOps vigia os seus serviços 24/7 e avisa-o no instante em que algo falha. E no fim de cada mês entrega um relatório claro, com números reais e um resumo executivo escrito por IA.
+    </p>
+
+    <div class="hero-actions">
+      <a href="#pricing" class="btn-primary" data-pt="Ver planos →" data-en="View plans →">Ver planos →</a>
+      <a href="#how" class="btn-ghost" data-pt="Como funciona" data-en="How it works">Como funciona</a>
+    </div>
+
+    <div class="hero-trust">
+      <span data-pt-html="<b>Sem instalar</b> nada" data-en-html="<b>Nothing</b> to install">Sem instalar nada</span>
+      <span class="dot">•</span>
+      <span data-pt-html="Pronto em <b>minutos</b>" data-en-html="Ready in <b>minutes</b>">Pronto em minutos</span>
+      <span class="dot">•</span>
+      <span data-pt-html="Cancele <b>quando quiser</b>" data-en-html="Cancel <b>anytime</b>">Cancele quando quiser</span>
+    </div>
+  </div>
+
+  <!-- REPORT DOCUMENT MOCK -->
+  <div class="hero-visual">
+    <div class="report-doc">
+      <div class="rd-chrome">
+        <div class="rd-dots"><div class="rd-dot r"></div><div class="rd-dot y"></div><div class="rd-dot g"></div></div>
+        <div class="rd-url">reports.owl-ops.io / acme / 2026-05.html</div>
       </div>
-      <div class="terminal-body">
-        <div class="t-dim">$ owl-ops status --tenant acme-corp</div>
-        <br/>
-        <div class="status-row">
-          <span class="badge-up">UP</span>
-          <span class="t-green">https://acme-corp.com</span>
-          <span class="t-dim">— 142ms</span>
+      <div class="rd-body">
+        <div class="rd-head">
+          <div>
+            <div class="rd-tenant">Acme Corp</div>
+            <div class="rd-period" data-pt="1–31 Maio 2026 · gerado a 1 Jun 09:00 UTC" data-en="1–31 May 2026 · generated 1 Jun 09:00 UTC">1–31 Maio 2026 · gerado a 1 Jun 09:00 UTC</div>
+          </div>
+          <div class="rd-stamp">HTML</div>
         </div>
-        <div class="status-row">
-          <span class="badge-up">UP</span>
-          <span class="t-green">https://api.acme-corp.com</span>
-          <span class="t-dim">— 89ms</span>
+
+        <div class="rd-aiblock">
+          <div class="rd-ailabel"><span class="spark">✦</span> <span data-pt="RESUMO EXECUTIVO · IA" data-en="EXECUTIVE SUMMARY · AI">RESUMO EXECUTIVO · IA</span></div>
+          <div class="rd-ai-line w1"></div>
+          <div class="rd-ai-line w2"></div>
+          <div class="rd-ai-line w3"></div>
+          <div class="rd-ai-line w4"></div>
         </div>
-        <div class="status-row">
-          <span class="badge-down">DOWN</span>
-          <span class="t-red">https://shop.acme-corp.com</span>
-          <span class="t-dim">— timeout</span>
+
+        <div class="rd-section-title" data-pt="MÉTRICAS-CHAVE" data-en="KEY METRICS">MÉTRICAS-CHAVE</div>
+        <div class="rd-table">
+          <div class="rd-thead">
+            <span data-pt="Painel" data-en="Panel">Painel</span><span>Avg</span><span>Max</span><span data-pt="Último" data-en="Last">Último</span>
+          </div>
+          <div class="rd-trow">
+            <span data-pt="Disponibilidade" data-en="Uptime">Disponibilidade</span><span class="v-g">99.7%</span><span>100%</span><span class="v-g">100%</span>
+          </div>
+          <div class="rd-trow">
+            <span data-pt="Tempo de resposta" data-en="Response time">Tempo de resposta</span><span>134ms</span><span>512ms</span><span>121ms</span>
+          </div>
+          <div class="rd-trow">
+            <span data-pt="Certificado SSL" data-en="SSL certificate">Certificado SSL</span><span>—</span><span>—</span><span class="v-a" data-pt="14 dias" data-en="14 days">14 dias</span>
+          </div>
         </div>
-        <div class="status-row">
-          <span class="badge-up">UP</span>
-          <span class="t-amber">SSL acme-corp.com</span>
-          <span class="t-dim">— expires in 14d ⚠</span>
+
+        <div class="rd-panel">
+          <div class="rd-panel-top">
+            <span class="rd-panel-title" data-pt="Tempo de resposta — HTTP" data-en="Response time — HTTP">Tempo de resposta — HTTP</span>
+            <span class="rd-panel-unit">ms</span>
+          </div>
+          <div class="rd-chart-wrap">
+            <svg class="chart" viewBox="0 0 300 80" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="cg1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#6d4aff" stop-opacity="0.35"/>
+                  <stop offset="100%" stop-color="#6d4aff" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <polygon fill="url(#cg1)" points="0,80 0,52 25,46 50,50 75,42 100,38 125,54 150,34 175,30 200,40 225,26 250,32 275,20 300,24 300,80"/>
+              <polyline fill="none" stroke="#6d4aff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"
+                points="0,52 25,46 50,50 75,42 100,38 125,54 150,34 175,30 200,40 225,26 250,32 275,20 300,24"/>
+            </svg>
+          </div>
         </div>
-        <br/>
-        <div class="t-muted">▶ <span class="t-red">ALERT</span> dispatched → Telegram @acme-admin <span class="t-dim">[08:14:03Z]</span></div>
-        <div class="t-muted">▶ Incident <span class="t-amber">#INC-0042</span> opened automatically</div>
-        <br/>
-        <span class="t-dim">$ <span class="blink">█</span></span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- METRICS ROW -->
-<div class="metrics reveal">
-  <div class="metric-item">
-    <span class="metric-num">30s</span>
-    <span class="metric-label" data-pt="Intervalo de verificação" data-en="Check interval">Intervalo de verificação</span>
-  </div>
-  <div class="metric-item">
-    <span class="metric-num">5min</span>
-    <span class="metric-label" data-pt="Onboarding de novo cliente" data-en="Client onboarding time">Onboarding de novo cliente</span>
-  </div>
-  <div class="metric-item">
-    <span class="metric-num">0</span>
-    <span class="metric-label" data-pt="Agentes instalados no cliente" data-en="Agents installed at client">Agentes instalados no cliente</span>
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item reveal">
+      <span class="stat-num">24/7</span>
+      <span class="stat-label" data-pt="Monitorização contínua" data-en="Continuous monitoring">Monitorização contínua</span>
+    </div>
+    <div class="stat-item reveal">
+      <span class="stat-num" data-pt="Na hora" data-en="Instant">Na hora</span>
+      <span class="stat-label" data-pt="Alertas de incidente" data-en="Incident alerts">Alertas de incidente</span>
+    </div>
+    <div class="stat-item reveal">
+      <span class="stat-num" data-pt="Mensal" data-en="Monthly">Mensal</span>
+      <span class="stat-label" data-pt="Relatório com resumo IA" data-en="Report with AI summary">Relatório com resumo IA</span>
+    </div>
+    <div class="stat-item reveal">
+      <span class="stat-num">0</span>
+      <span class="stat-label" data-pt="Dashboards para vigiar" data-en="Dashboards to babysit">Dashboards para vigiar</span>
+    </div>
   </div>
 </div>
 
 <!-- HOW IT WORKS -->
-<section id="how" class="content-section">
-  <div class="section-header reveal">
-    <span class="section-label" data-pt="COMO FUNCIONA" data-en="HOW IT WORKS">COMO FUNCIONA</span>
-    <h2 class="section-title" data-pt="Três passos.<br/>Zero fricção." data-en="Three steps.<br/>Zero friction.">Três passos.<br/>Zero fricção.</h2>
-    <p class="section-desc" data-pt="Sem instalar agentes, sem acesso à sua rede interna. Monitorização do exterior, como um utilizador real." data-en="No agents to install, no access to your internal network. Monitoring from the outside, just like a real user.">Sem instalar agentes, sem acesso à sua rede interna. Monitorização do exterior, como um utilizador real.</p>
-  </div>
-
-  <div class="steps">
-    <div class="step-card reveal">
-      <div class="step-num">01</div>
-      <span class="step-icon">⚙️</span>
-      <div class="step-title" data-pt="Configuramos juntos" data-en="We set it up together">Configuramos juntos</div>
-      <p class="step-desc" data-pt="Diz-nos quais os serviços a monitorizar — URL, API, certificado SSL, DNS. Configuramos tudo em menos de 5 minutos." data-en="Tell us which services to monitor — URLs, APIs, SSL certificates, DNS. We configure everything in under 5 minutes.">Diz-nos quais os serviços a monitorizar — URL, API, certificado SSL, DNS. Configuramos tudo em menos de 5 minutos.</p>
+<section id="how">
+  <div class="content-section">
+    <div class="sec-hdr-center reveal">
+      <span class="sec-eyebrow" data-pt="COMO FUNCIONA" data-en="HOW IT WORKS">COMO FUNCIONA</span>
+      <h2 class="sec-title" data-pt-html="Da monitorização<br/><em>ao relatório.</em>" data-en-html="From monitoring<br/><em>to a report.</em>">Da monitorização<br/><em>ao relatório.</em></h2>
+      <p class="sec-desc" data-pt="Você diz-nos o que é importante. Nós tratamos de tudo o resto — vigiar, compilar, escrever e entregar." data-en="You tell us what matters. We handle everything else — watch, compile, write and deliver.">Você diz-nos o que é importante. Nós tratamos de tudo o resto — vigiar, compilar, escrever e entregar.</p>
     </div>
-    <div class="step-card reveal">
-      <div class="step-num">02</div>
-      <span class="step-icon">👁️</span>
-      <div class="step-title" data-pt="Monitorizamos 24/7" data-en="We monitor 24/7">Monitorizamos 24/7</div>
-      <p class="step-desc" data-pt="O nosso sistema verifica os seus serviços a cada 30 segundos, todos os dias, durante o ano inteiro. Sem interrupções." data-en="Our system checks your services every 30 seconds, every day, all year long. Without interruptions.">O nosso sistema verifica os seus serviços a cada 30 segundos, todos os dias, durante o ano inteiro. Sem interrupções.</p>
-    </div>
-    <div class="step-card reveal">
-      <div class="step-num">03</div>
-      <span class="step-icon">🔔</span>
-      <div class="step-title" data-pt="Você recebe o alerta" data-en="You get the alert">Você recebe o alerta</div>
-      <p class="step-desc" data-pt="Quando algo falha, recebe notificação imediata no canal que preferir — Telegram, Slack, email ou Discord." data-en="When something fails, you get an immediate notification on your preferred channel — Telegram, Slack, email or Discord.">Quando algo falha, recebe notificação imediata no canal que preferir — Telegram, Slack, email ou Discord.</p>
+    <div class="steps">
+      <div class="step-card reveal">
+        <span class="step-n">01</span>
+        <div class="step-icon-box">📡</div>
+        <div class="step-title" data-pt="Monitorizamos os seus serviços" data-en="We monitor your services">Monitorizamos os seus serviços</div>
+        <p class="step-desc" data-pt="Vigiamos os seus sites, APIs e certificados 24/7, a partir do exterior — tal como um cliente real os vê. Sem instalar nada na sua infraestrutura." data-en="We watch your sites, APIs and certificates 24/7, from the outside — exactly as a real customer sees them. Nothing to install on your infrastructure.">Vigiamos os seus sites, APIs e certificados 24/7, a partir do exterior — tal como um cliente real os vê. Sem instalar nada na sua infraestrutura.</p>
+      </div>
+      <div class="step-card reveal">
+        <span class="step-n">02</span>
+        <div class="step-icon-box">🔔</div>
+        <div class="step-title" data-pt="Algo falha? Sabe na hora" data-en="Something breaks? You know instantly">Algo falha? Sabe na hora</div>
+        <p class="step-desc" data-pt="No instante em que um serviço deixa de responder — ou um certificado está prestes a expirar — recebe um alerta no canal da sua equipa. E outro assim que recupera." data-en="The moment a service stops responding — or a certificate is about to expire — you get an alert in your team's channel. And another as soon as it recovers.">No instante em que um serviço deixa de responder — ou um certificado está prestes a expirar — recebe um alerta no canal da sua equipa. E outro assim que recupera.</p>
+      </div>
+      <div class="step-card reveal">
+        <span class="step-n">03</span>
+        <div class="step-icon-box">📊</div>
+        <div class="step-title" data-pt="Todos os meses, clareza" data-en="Every month, clarity">Todos os meses, clareza</div>
+        <p class="step-desc" data-pt="No fim de cada mês, reunimos tudo num relatório claro — com números reais e um resumo executivo escrito por IA que qualquer pessoa entende. Entregue diretamente a si." data-en="At the end of each month, we pull it all into one clear report — with real numbers and an AI-written executive summary anyone can understand. Delivered straight to you.">No fim de cada mês, reunimos tudo num relatório claro — com números reais e um resumo executivo escrito por IA que qualquer pessoa entende. Entregue diretamente a si.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ALERTS SECTION -->
-<section class="alerts-section">
-  <div class="alerts-inner">
-    <div>
-      <div class="section-header reveal" style="text-align:left; margin-bottom: 1.5rem;">
-        <span class="section-label" data-pt="ALERTAS INSTANTÂNEOS" data-en="INSTANT ALERTS">ALERTAS INSTANTÂNEOS</span>
-        <h2 class="section-title" data-pt="Saiba antes<br/>dos seus clientes." data-en="Know before<br/>your customers do.">Saiba antes<br/>dos seus clientes.</h2>
-        <p class="section-desc" style="margin:1rem 0 0; text-align:left;" data-pt="Alertas nativos enviados directamente para si no momento em que um serviço falha. Sem dashboards para verificar — a informação chega até si." data-en="Native alerts sent directly to you the moment a service fails. No dashboards to check — the information comes to you.">Alertas nativos enviados directamente para si no momento em que um serviço falha. Sem dashboards para verificar — a informação chega até si.</p>
-      </div>
-      <div class="channels reveal">
-        <div class="channel">💬 Telegram</div>
-        <div class="channel">🟣 Slack</div>
-        <div class="channel">📧 <span data-pt="Email" data-en="Email">Email</span></div>
-        <div class="channel">🎮 Discord</div>
+<!-- ALERTS SPLIT -->
+<section id="alerts" class="split-section">
+  <div class="split-inner rev">
+    <div class="reveal split-visual">
+      <div class="alert-mock">
+        <div class="al-head">
+          <div class="al-icon">🔔</div>
+          <div>
+            <div class="al-title">OwlOps · <span data-pt="Alertas" data-en="Alerts">Alertas</span></div>
+            <div class="al-sub" data-pt="no canal da sua equipa" data-en="in your team's channel">no canal da sua equipa</div>
+          </div>
+        </div>
+        <div class="al-item">
+          <div class="al-row">
+            <span class="al-tag dn" data-pt="EM BAIXO" data-en="DOWN">EM BAIXO</span>
+            <span class="al-time">09:14</span>
+          </div>
+          <div class="al-host">mrosse.com/wp-admin</div>
+          <div class="al-detail" data-pt="Sem resposta há 2 verificações seguidas" data-en="No response for 2 checks in a row">Sem resposta há 2 verificações seguidas</div>
+        </div>
+        <div class="al-item">
+          <div class="al-row">
+            <span class="al-tag wn">SSL</span>
+            <span class="al-time">06:00</span>
+          </div>
+          <div class="al-host">mrosse.com</div>
+          <div class="al-detail" data-pt="O certificado expira dentro de 14 dias" data-en="Certificate expires in 14 days">O certificado expira dentro de 14 dias</div>
+        </div>
+        <div class="al-item">
+          <div class="al-row">
+            <span class="al-tag up" data-pt="RECUPEROU" data-en="RECOVERED">RECUPEROU</span>
+            <span class="al-time">09:22</span>
+          </div>
+          <div class="al-host">mrosse.com/wp-admin</div>
+          <div class="al-detail" data-pt="De volta · 203ms · esteve 8 min em baixo" data-en="Back up · 203ms · down for 8 min">De volta · 203ms · esteve 8 min em baixo</div>
+        </div>
       </div>
     </div>
     <div class="reveal">
-      <div class="alert-mock">
-        <div class="alert-header">
-          <span class="alert-icon">💬</span>
-          <span>LUNAWATCH · TELEGRAM</span>
+      <span class="sec-eyebrow" data-pt="ALERTAS INSTANTÂNEOS" data-en="INSTANT ALERTS">ALERTAS INSTANTÂNEOS</span>
+      <h2 class="sec-title" data-pt-html="Sabe primeiro.<br/><em>Antes dos seus clientes.</em>" data-en-html="You know first.<br/><em>Before your customers do.</em>">Sabe primeiro.<br/><em>Antes dos seus clientes.</em></h2>
+      <p class="sec-desc" data-pt="Vigiamos os seus serviços a toda a hora. No momento em que algo deixa de responder — ou um certificado está prestes a expirar — recebe um alerta no canal da sua equipa. E outro assim que tudo recupera." data-en="We watch your services around the clock. The moment something stops responding — or a certificate is about to expire — you get an alert in your team's channel. And another as soon as everything recovers.">Vigiamos os seus serviços a toda a hora. No momento em que algo deixa de responder — ou um certificado está prestes a expirar — recebe um alerta no canal da sua equipa. E outro assim que tudo recupera.</p>
+      <div class="ai-tags">
+        <div class="ai-tag" data-pt="⚡ Na hora" data-en="⚡ Instant">⚡ Na hora</div>
+        <div class="ai-tag" data-pt="✅ E quando recupera" data-en="✅ And on recovery">✅ E quando recupera</div>
+        <div class="ai-tag" data-pt="🔐 Avisos de SSL e domínio" data-en="🔐 SSL & domain warnings">🔐 Avisos de SSL e domínio</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI SPLIT -->
+<section id="ai" class="split-section">
+  <div class="split-inner">
+    <div class="reveal">
+      <span class="sec-eyebrow" data-pt="RESUMO EXECUTIVO COM IA" data-en="AI EXECUTIVE SUMMARY">RESUMO EXECUTIVO COM IA</span>
+      <h2 class="sec-title" data-pt-html="Métricas viram<br/><em>uma história.</em>" data-en-html="Metrics become<br/><em>a story.</em>">Métricas viram<br/><em>uma história.</em></h2>
+      <p class="sec-desc" data-pt="A IA lê os números do mês e escreve um resumo executivo em linguagem clara, destacando o que correu bem e o que merece atenção. Perfeito para quem precisa de decidir sem ler gráficos." data-en="The AI reads the month's numbers and writes an executive summary in plain language, highlighting what went well and what needs attention. Perfect for anyone who needs to decide without reading charts.">A IA lê os números do mês e escreve um resumo executivo em linguagem clara, destacando o que correu bem e o que merece atenção. Perfeito para quem precisa de decidir sem ler gráficos.</p>
+      <div class="ai-tags">
+        <div class="ai-tag" data-pt="✦ Linguagem clara" data-en="✦ Plain language">✦ Linguagem clara</div>
+        <div class="ai-tag" data-pt="📌 Destaca o que importa" data-en="📌 Highlights what matters">📌 Destaca o que importa</div>
+        <div class="ai-tag" data-pt="📊 A partir de números reais" data-en="📊 From real numbers">📊 A partir de números reais</div>
+        <div class="ai-tag" data-pt="🔒 Dados privados" data-en="🔒 Private data">🔒 Dados privados</div>
+      </div>
+    </div>
+    <div class="reveal split-visual">
+      <div class="ai-mock">
+        <div class="ai-mock-top">
+          <div class="ai-avatar">✦</div>
+          <div>
+            <div class="ai-mock-title" data-pt="Resumo executivo" data-en="Executive summary">Resumo executivo</div>
+            <div class="ai-mock-sub" data-pt="Acme Corp · Maio 2026" data-en="Acme Corp · May 2026">Acme Corp · Maio 2026</div>
+          </div>
         </div>
-        <div class="alert-item">
-          <div><span class="alert-tag tag-down">DOWN</span> <span class="alert-status-down">shop.acme-corp.com</span></div>
-          <div class="alert-url">HTTPS · Connection timeout after 5000ms</div>
-          <div class="alert-time">Today at 08:14 · Response time: N/A</div>
+        <div class="ai-mock-body">
+          <p data-pt-html="A infraestrutura manteve-se <em>estável</em> em Maio, com 99,7% de disponibilidade média e nenhum incidente prolongado. O tempo de resposta melhorou face ao mês anterior, com uma mediana de 121&nbsp;ms." data-en-html="Infrastructure stayed <em>stable</em> through May, averaging 99.7% uptime with no prolonged incidents. Response time improved over the prior month, with a 121&nbsp;ms median.">A infraestrutura manteve-se <em>estável</em> em Maio, com 99,7% de disponibilidade média e nenhum incidente prolongado. O tempo de resposta melhorou face ao mês anterior, com uma mediana de 121&nbsp;ms.</p>
+          <p data-pt="Recomenda-se atenção ao certificado SSL de acme-corp.com, que expira dentro de 14 dias." data-en="Worth noting: the SSL certificate for acme-corp.com expires within 14 days and should be renewed.">Recomenda-se atenção ao certificado SSL de acme-corp.com, que expira dentro de 14 dias.</p>
         </div>
-        <div class="alert-item">
-          <div><span class="alert-tag tag-ssl">SSL</span> <span class="alert-status-up" style="color: var(--amber);">acme-corp.com</span></div>
-          <div class="alert-url">Certificate expires in 14 days</div>
-          <div class="alert-time">Today at 06:00 · Auto-check</div>
-        </div>
-        <div class="alert-item">
-          <div><span class="alert-tag tag-up">UP</span> <span class="alert-status-up">shop.acme-corp.com</span></div>
-          <div class="alert-url">HTTPS · Recovered · 203ms</div>
-          <div class="alert-time">Today at 08:22 · Downtime: 8min</div>
+        <div class="ai-mock-foot">
+          <span data-pt="Escrito para humanos" data-en="Written for humans">Escrito para humanos</span>
+          <span data-pt="Pronto a partilhar" data-en="Ready to share">Pronto a partilhar</span>
         </div>
       </div>
     </div>
@@ -923,168 +1011,199 @@
 </section>
 
 <!-- FEATURES -->
-<section class="content-section">
-  <div class="section-header reveal">
-    <span class="section-label" data-pt="FUNCIONALIDADES" data-en="FEATURES">FUNCIONALIDADES</span>
-    <h2 class="section-title" data-pt="Tudo o que precisa.<br/>Nada do que não precisa." data-en="Everything you need.<br/>Nothing you don't.">Tudo o que precisa.<br/>Nada do que não precisa.</h2>
-  </div>
-
-  <div class="features-grid">
-    <div class="feature-card reveal">
-      <div class="feat-icon">🌐</div>
-      <div class="feat-title" data-pt="HTTP/HTTPS" data-en="HTTP/HTTPS">HTTP/HTTPS</div>
-      <p class="feat-desc" data-pt="Verificação de endpoints, status codes, keywords em páginas e tempo de resposta." data-en="Endpoint verification, status codes, page keywords and response time.">Verificação de endpoints, status codes, keywords em páginas e tempo de resposta.</p>
+<section id="features">
+  <div class="content-section">
+    <div class="sec-hdr-center reveal">
+      <span class="sec-eyebrow" data-pt="FUNCIONALIDADES" data-en="FEATURES">FUNCIONALIDADES</span>
+      <h2 class="sec-title" data-pt-html="Tudo num só relatório.<br/><em>Sem rebuild.</em>" data-en-html="Everything in one report.<br/><em>No rebuild.</em>">Tudo num só relatório.<br/><em>Sem rebuild.</em></h2>
     </div>
-    <div class="feature-card reveal">
-      <div class="feat-icon">🔐</div>
-      <div class="feat-title" data-pt="Certificados SSL" data-en="SSL Certificates">Certificados SSL</div>
-      <p class="feat-desc" data-pt="Alerta automático antes da expiração do certificado. Nunca mais perca um renovação." data-en="Automatic alert before certificate expiry. Never miss a renewal again.">Alerta automático antes da expiração do certificado. Nunca mais perca um renovação.</p>
-    </div>
-    <div class="feature-card reveal">
-      <div class="feat-icon">🔍</div>
-      <div class="feat-title">DNS</div>
-      <p class="feat-desc" data-pt="Monitorização de registos DNS. Detecta propagações incorrectas e falhas de resolução." data-en="DNS record monitoring. Detects incorrect propagations and resolution failures.">Monitorização de registos DNS. Detecta propagações incorrectas e falhas de resolução.</p>
-    </div>
-    <div class="feature-card reveal">
-      <div class="feat-icon">🔌</div>
-      <div class="feat-title">TCP</div>
-      <p class="feat-desc" data-pt="Verifica portas e serviços TCP directamente — bases de dados, SMTP, FTP e muito mais." data-en="Checks TCP ports and services directly — databases, SMTP, FTP and much more.">Verifica portas e serviços TCP directamente — bases de dados, SMTP, FTP e muito mais.</p>
-    </div>
-    <div class="feature-card reveal">
-      <div class="feat-icon">📊</div>
-      <div class="feat-title" data-pt="Relatórios PDF mensais" data-en="Monthly PDF Reports">Relatórios PDF mensais</div>
-      <p class="feat-desc" data-pt="Relatório automático enviado por email todos os meses com uptime, disponibilidade e incidentes." data-en="Automatic report sent by email every month with uptime, availability and incidents.">Relatório automático enviado por email todos os meses com uptime, disponibilidade e incidentes.</p>
-    </div>
-    <div class="feature-card reveal">
-      <div class="feat-icon">📈</div>
-      <div class="feat-title" data-pt="Dashboard dedicado" data-en="Dedicated Dashboard">Dashboard dedicado</div>
-      <p class="feat-desc" data-pt="Acesso exclusivo ao seu dashboard Grafana com histórico completo e métricas em tempo real." data-en="Exclusive access to your Grafana dashboard with full history and real-time metrics.">Acesso exclusivo ao seu dashboard Grafana com histórico completo e métricas em tempo real.</p>
+    <div class="features-grid reveal">
+      <div class="feat-card">
+        <div class="feat-icon">📈</div>
+        <div class="feat-title" data-pt="Visão completa, num relance" data-en="The full picture, at a glance">Visão completa, num relance</div>
+        <p class="feat-desc" data-pt="Cada gráfico que importa aparece no relatório. Vê o estado de tudo sem abrir uma única ferramenta." data-en="Every chart that matters shows up in the report. See the state of everything without opening a single tool.">Cada gráfico que importa aparece no relatório. Vê o estado de tudo sem abrir uma única ferramenta.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎯</div>
+        <div class="feat-title" data-pt="Números reais, não estimativas" data-en="Real numbers, not estimates">Números reais, não estimativas</div>
+        <p class="feat-desc" data-pt="Média, mínimo, máximo e valor atual de cada métrica — medidos no período exacto. Sem arredondamentos, sem suposições." data-en="Average, minimum, maximum and current value for every metric — measured over the exact period. No rounding, no guesswork.">Média, mínimo, máximo e valor atual de cada métrica — medidos no período exacto. Sem arredondamentos, sem suposições.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">✦</div>
+        <div class="feat-title" data-pt="Resumo executivo por IA" data-en="AI executive summary">Resumo executivo por IA</div>
+        <p class="feat-desc" data-pt="Um resumo escrito em linguagem clara, que vai direto ao que importa. Sempre opcional — o relatório chega à mesma sem ele." data-en="A summary written in plain language that gets straight to the point. Always optional — the report still arrives without it.">Um resumo escrito em linguagem clara, que vai direto ao que importa. Sempre opcional — o relatório chega à mesma sem ele.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📨</div>
+        <div class="feat-title" data-pt="Entregue onde trabalha" data-en="Delivered where you work">Entregue onde trabalha</div>
+        <p class="feat-desc" data-pt="Todos os meses no seu inbox, ou a pedido no canal da sua equipa. O mesmo relatório, onde for mais cómodo para si." data-en="Every month in your inbox, or on demand in your team's channel. The same report, wherever it's most convenient.">Todos os meses no seu inbox, ou a pedido no canal da sua equipa. O mesmo relatório, onde for mais cómodo para si.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🗂️</div>
+        <div class="feat-title" data-pt="Alojado, com histórico" data-en="Hosted, with history">Alojado, com histórico</div>
+        <p class="feat-desc" data-pt="Cada relatório fica guardado e acessível por um link. O histórico completo está sempre à mão — compare meses num clique." data-en="Every report is stored and reachable by a link. The full history is always on hand — compare months in one click.">Cada relatório fica guardado e acessível por um link. O histórico completo está sempre à mão — compare meses num clique.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔒</div>
+        <div class="feat-title" data-pt="Privado e seguro" data-en="Private and secure">Privado e seguro</div>
+        <p class="feat-desc" data-pt="Os seus dados nunca saem para serviços de terceiros. Privacidade por desenho — pensado para o RGPD desde o primeiro dia." data-en="Your data never leaves to third-party services. Privacy by design — built for GDPR from day one.">Os seus dados nunca saem para serviços de terceiros. Privacidade por desenho — pensado para o RGPD desde o primeiro dia.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- REPORTS -->
-<section class="alerts-section">
-  <div class="alerts-inner" style="grid-template-columns: 1fr 1fr;">
-    <div class="reveal">
-      <div class="report-preview">
-        <div class="rp-header">
-          <span>📋 LUNAWATCH REPORT — ABRIL 2025</span>
-          <span class="t-green">✓ PDF</span>
+<!-- DELIVERY SPLIT -->
+<section class="split-section">
+  <div class="split-inner rev">
+    <div class="reveal split-visual">
+      <div class="deliver-mock">
+        <div class="dm-head">
+          <div class="dm-icon">✉</div>
+          <div>
+            <div class="dm-title" data-pt="reports@owl-ops.io" data-en="reports@owl-ops.io">reports@owl-ops.io</div>
+            <div class="dm-sub" data-pt="para: cto@acme-corp.com" data-en="to: cto@acme-corp.com">para: cto@acme-corp.com</div>
+          </div>
         </div>
-        <div class="rp-body">
-          <div class="rp-metric">
-            <div class="rp-label">UPTIME — acme-corp.com</div>
-            <div class="rp-bar-bg"><div class="rp-bar-fill" style="width:99.7%"></div></div>
-            <div style="font-family: var(--mono); font-size:0.7rem; color: var(--green); margin-top: 4px;">99.7%</div>
-          </div>
-          <div class="rp-metric">
-            <div class="rp-label">UPTIME — api.acme-corp.com</div>
-            <div class="rp-bar-bg"><div class="rp-bar-fill" style="width:100%"></div></div>
-            <div style="font-family: var(--mono); font-size:0.7rem; color: var(--green); margin-top: 4px;">100%</div>
-          </div>
-          <div class="rp-metric">
-            <div class="rp-label">UPTIME — shop.acme-corp.com</div>
-            <div class="rp-bar-bg"><div class="rp-bar-fill" style="width:98.1%"></div></div>
-            <div style="font-family: var(--mono); font-size:0.7rem; color: var(--amber); margin-top: 4px;">98.1%</div>
-          </div>
-          <div style="margin-top:16px; padding-top: 14px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 0.72rem; color: var(--muted);">
-            <div>Incidents: 2 &nbsp;·&nbsp; Avg response: 134ms &nbsp;·&nbsp; SSL: 14d</div>
-          </div>
+        <div class="dm-body">
+          <div class="dm-subject" data-pt="Relatório mensal — Acme Corp, Maio 2026" data-en="Monthly report — Acme Corp, May 2026">Relatório mensal — Acme Corp, Maio 2026</div>
+          <div class="dm-meta" data-pt="1 Jun 2026, 09:00" data-en="1 Jun 2026, 09:00">1 Jun 2026, 09:00</div>
+          <div class="dm-text" data-pt="A infraestrutura manteve-se estável em Maio, com 99,7% de disponibilidade e nenhum incidente prolongado…" data-en="Infrastructure stayed stable through May, with 99.7% uptime and no prolonged incidents…">A infraestrutura manteve-se estável em Maio, com 99,7% de disponibilidade e nenhum incidente prolongado…</div>
+          <a href="#" class="dm-btn" data-pt="Ver o relatório completo →" data-en="View the full report →">Ver o relatório completo →</a>
+          <div class="dm-divider"></div>
+          <div class="dm-cmd" data-pt-html="💬 … ou peça-o quando quiser no <b>chat da equipa</b>" data-en-html="💬 … or ask for it anytime in your <b>team chat</b>">💬 … ou peça-o quando quiser no <b>chat da equipa</b></div>
         </div>
       </div>
     </div>
-    <div>
-      <div class="section-header reveal" style="text-align:left; margin-bottom: 1.5rem;">
-        <span class="section-label" data-pt="RELATÓRIOS MENSAIS" data-en="MONTHLY REPORTS">RELATÓRIOS MENSAIS</span>
-        <h2 class="section-title" data-pt="Prova de valor.<br/>Todos os meses." data-en="Proof of value.<br/>Every month.">Prova de valor.<br/>Todos os meses.</h2>
-        <p class="section-desc" style="margin:1rem 0 0; text-align:left;" data-pt="No fim de cada mês recebe automaticamente um relatório PDF com o estado completo dos seus serviços — uptime, incidentes e tempo de resposta. Perfeito para partilhar com a gestão." data-en="At the end of each month you automatically receive a PDF report with the complete status of your services — uptime, incidents and response time. Perfect to share with management.">No fim de cada mês recebe automaticamente um relatório PDF com o estado completo dos seus serviços — uptime, incidentes e tempo de resposta. Perfeito para partilhar com a gestão.</p>
+    <div class="reveal">
+      <span class="sec-eyebrow" data-pt="ENTREGA" data-en="DELIVERY">ENTREGA</span>
+      <h2 class="sec-title" data-pt-html="Alojado e enviado.<br/><em>Não anexado.</em>" data-en-html="Hosted and sent.<br/><em>Not attached.</em>">Alojado e enviado.<br/><em>Não anexado.</em></h2>
+      <p class="sec-desc" data-pt="Recebe um email com o essencial — o resumo executivo e um botão para o relatório completo. Quer agora? Peça-o a qualquer momento no canal da sua equipa e recebe o link na hora." data-en="You get an email with the essentials — the executive summary and a button to the full report. Want it now? Ask for it anytime in your team's channel and get the link instantly.">Recebe um email com o essencial — o resumo executivo e um botão para o relatório completo. Quer agora? Peça-o a qualquer momento no canal da sua equipa e recebe o link na hora.</p>
+      <div class="ai-tags">
+        <div class="ai-tag" data-pt="📅 Todos os meses" data-en="📅 Every month">📅 Todos os meses</div>
+        <div class="ai-tag" data-pt="📧 Por email" data-en="📧 By email">📧 Por email</div>
+        <div class="ai-tag" data-pt="💬 No chat da equipa" data-en="💬 In your team chat">💬 No chat da equipa</div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- PRICING -->
-<section id="pricing" class="content-section">
-  <div class="section-header reveal">
-    <span class="section-label" data-pt="PREÇOS" data-en="PRICING">PREÇOS</span>
-    <h2 class="section-title" data-pt="Simples e transparente." data-en="Simple and transparent.">Simples e transparente.</h2>
-    <p class="section-desc" data-pt="Sem contratos de longo prazo. Cancele quando quiser." data-en="No long-term contracts. Cancel anytime.">Sem contratos de longo prazo. Cancele quando quiser.</p>
-  </div>
-
-  <div class="pricing-grid">
-    <div class="price-card reveal">
-      <div class="price-name" data-pt="STARTER" data-en="STARTER">STARTER</div>
-      <div class="price-amount"><span>€</span>50</div>
-      <div class="price-period" data-pt="por mês" data-en="per month">por mês</div>
-      <div class="price-divider"></div>
-      <ul class="price-features">
-        <li data-pt="Até 5 endpoints" data-en="Up to 5 endpoints">Até 5 endpoints</li>
-        <li data-pt="HTTP, HTTPS, SSL" data-en="HTTP, HTTPS, SSL">HTTP, HTTPS, SSL</li>
-        <li data-pt="Alertas via Telegram ou Email" data-en="Alerts via Telegram or Email">Alertas via Telegram ou Email</li>
-        <li data-pt="Relatório PDF mensal" data-en="Monthly PDF report">Relatório PDF mensal</li>
-        <li data-pt="Dashboard Grafana" data-en="Grafana Dashboard">Dashboard Grafana</li>
-      </ul>
-      <a href="mailto:hello@owl-ops.io" class="price-cta outline" data-pt="Começar →" data-en="Get started →">Começar →</a>
+<section id="pricing">
+  <div class="content-section">
+    <div class="sec-hdr-center reveal">
+      <span class="sec-eyebrow" data-pt="PREÇOS" data-en="PRICING">PREÇOS</span>
+      <h2 class="sec-title" data-pt="Simples e transparente." data-en="Simple and transparent.">Simples e transparente.</h2>
+      <p class="sec-desc" data-pt="Paga pelo resultado — relatórios entregues — não por compute. Sem contratos de longo prazo." data-en="Pay for the outcome — reports delivered — not for compute. No long-term contracts.">Paga pelo resultado — relatórios entregues — não por compute. Sem contratos de longo prazo.</p>
     </div>
+    <div class="pricing-grid">
+      <div class="price-card reveal">
+        <div class="price-tier">STARTER</div>
+        <div class="price-amount"><sup>€</sup>50</div>
+        <div class="price-period" data-pt="por mês" data-en="per month">por mês</div>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li><div class="check">✓</div><span data-pt="Até 5 serviços monitorizados" data-en="Up to 5 monitored services">Até 5 serviços monitorizados</span></li>
+          <li><div class="check">✓</div><span data-pt="HTTP, HTTPS e SSL" data-en="HTTP, HTTPS and SSL">HTTP, HTTPS e SSL</span></li>
+          <li><div class="check">✓</div><span data-pt="Relatório HTML mensal" data-en="Monthly HTML report">Relatório HTML mensal</span></li>
+          <li><div class="check">✓</div><span data-pt="Entrega por email com link" data-en="Email delivery with link">Entrega por email com link</span></li>
+          <li><div class="check">✓</div><span data-pt="Painel de estado ao vivo" data-en="Live status dashboard">Painel de estado ao vivo</span></li>
+        </ul>
+        <a href="mailto:hello@owl-ops.io" class="price-cta outline" data-pt="Começar →" data-en="Get started →">Começar →</a>
+      </div>
 
-    <div class="price-card featured reveal">
-      <div class="featured-badge" data-pt="MAIS POPULAR" data-en="MOST POPULAR">MAIS POPULAR</div>
-      <div class="price-name">PRO</div>
-      <div class="price-amount"><span>€</span>100</div>
-      <div class="price-period" data-pt="por mês" data-en="per month">por mês</div>
-      <div class="price-divider"></div>
-      <ul class="price-features">
-        <li data-pt="Até 20 endpoints" data-en="Up to 20 endpoints">Até 20 endpoints</li>
-        <li data-pt="HTTP, HTTPS, SSL, DNS, TCP" data-en="HTTP, HTTPS, SSL, DNS, TCP">HTTP, HTTPS, SSL, DNS, TCP</li>
-        <li data-pt="Alertas multi-canal (todos)" data-en="Multi-channel alerts (all)">Alertas multi-canal (todos)</li>
-        <li data-pt="Relatório PDF mensal" data-en="Monthly PDF report">Relatório PDF mensal</li>
-        <li data-pt="Dashboard Grafana exclusivo" data-en="Exclusive Grafana Dashboard">Dashboard Grafana exclusivo</li>
-        <li data-pt="Suporte prioritário" data-en="Priority support">Suporte prioritário</li>
-      </ul>
-      <a href="mailto:hello@owl-ops.io" class="price-cta solid" data-pt="Começar →" data-en="Get started →">Começar →</a>
-    </div>
+      <div class="price-card featured reveal">
+        <div class="feat-badge" data-pt="MAIS POPULAR" data-en="MOST POPULAR">MAIS POPULAR</div>
+        <div class="price-tier">PRO</div>
+        <div class="price-amount"><sup>€</sup>100</div>
+        <div class="price-period" data-pt="por mês" data-en="per month">por mês</div>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li><div class="check">✓</div><span data-pt="Até 20 serviços monitorizados" data-en="Up to 20 monitored services">Até 20 serviços monitorizados</span></li>
+          <li><div class="check">✓</div><span data-pt="HTTP, HTTPS, SSL, DNS e TCP" data-en="HTTP, HTTPS, SSL, DNS and TCP">HTTP, HTTPS, SSL, DNS e TCP</span></li>
+          <li><div class="check">✓</div><span data-pt="Resumo executivo escrito por IA" data-en="AI-written executive summary">Resumo executivo escrito por IA</span></li>
+          <li><div class="check">✓</div><span data-pt="Entrega por email e no chat da equipa" data-en="Delivery by email and team chat">Entrega por email e no chat da equipa</span></li>
+          <li><div class="check">✓</div><span data-pt="Relatórios alojados com histórico" data-en="Hosted reports with history">Relatórios alojados com histórico</span></li>
+          <li><div class="check">✓</div><span data-pt="Suporte prioritário" data-en="Priority support">Suporte prioritário</span></li>
+        </ul>
+        <a href="mailto:hello@owl-ops.io" class="price-cta solid" data-pt="Começar →" data-en="Get started →">Começar →</a>
+      </div>
 
-    <div class="price-card reveal">
-      <div class="price-name">ENTERPRISE</div>
-      <div class="price-amount"><span>€</span>200</div>
-      <div class="price-period" data-pt="por mês" data-en="per month">por mês</div>
-      <div class="price-divider"></div>
-      <ul class="price-features">
-        <li data-pt="Endpoints ilimitados" data-en="Unlimited endpoints">Endpoints ilimitados</li>
-        <li data-pt="Todos os protocolos" data-en="All protocols">Todos os protocolos</li>
-        <li data-pt="Todos os canais de alerta" data-en="All alert channels">Todos os canais de alerta</li>
-        <li data-pt="Relatórios personalizados" data-en="Custom reports">Relatórios personalizados</li>
-        <li data-pt="SLA documentado" data-en="Documented SLA">SLA documentado</li>
-        <li data-pt="Onboarding dedicado" data-en="Dedicated onboarding">Onboarding dedicado</li>
-      </ul>
-      <a href="mailto:hello@owl-ops.io" class="price-cta outline" data-pt="Falar connosco →" data-en="Talk to us →">Falar connosco →</a>
+      <div class="price-card reveal">
+        <div class="price-tier">ENTERPRISE</div>
+        <div class="price-amount"><sup>€</sup>200</div>
+        <div class="price-period" data-pt="por mês" data-en="per month">por mês</div>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li><div class="check">✓</div><span data-pt="Serviços ilimitados" data-en="Unlimited services">Serviços ilimitados</span></li>
+          <li><div class="check">✓</div><span data-pt="Todos os protocolos" data-en="All protocols">Todos os protocolos</span></li>
+          <li><div class="check">✓</div><span data-pt="IA dedicada e ajustada ao seu negócio" data-en="Dedicated AI tuned to your business">IA dedicada e ajustada ao seu negócio</span></li>
+          <li><div class="check">✓</div><span data-pt="Relatórios à medida da sua marca" data-en="Reports tailored to your brand">Relatórios à medida da sua marca</span></li>
+          <li><div class="check">✓</div><span data-pt="Acesso seguro e privado por cliente" data-en="Secure, private per-client access">Acesso seguro e privado por cliente</span></li>
+          <li><div class="check">✓</div><span data-pt="Onboarding dedicado e SLA" data-en="Dedicated onboarding and SLA">Onboarding dedicado e SLA</span></li>
+        </ul>
+        <a href="mailto:hello@owl-ops.io" class="price-cta outline" data-pt="Falar connosco →" data-en="Talk to us →">Falar connosco →</a>
+      </div>
     </div>
+    <p class="price-note" data-pt="Sem instalação. Sem complexidade. Paga apenas pelo resultado — relatórios entregues, todos os meses." data-en="No installation. No complexity. You pay only for the outcome — reports delivered, every month.">Sem instalação. Sem complexidade. Paga apenas pelo resultado — relatórios entregues, todos os meses.</p>
   </div>
 </section>
 
-<!-- CTA FINAL -->
-<section class="cta-section">
-  <div class="cta-glow"></div>
+<!-- CTA BANNER -->
+<section class="cta-banner">
   <div class="reveal">
-    <h2 class="cta-title" data-pt="Pronto para monitorizar?" data-en="Ready to start monitoring?">Pronto para monitorizar?</h2>
-    <p class="cta-sub" data-pt="Configure em menos de 5 minutos. Sem contratos. Sem surpresas." data-en="Set up in under 5 minutes. No contracts. No surprises.">Configure em menos de 5 minutos. Sem contratos. Sem surpresas.</p>
-    <a href="mailto:hello@owl-ops.io" class="btn-primary" data-pt="Entrar em contacto" data-en="Get in touch">Entrar em contacto</a>
+    <h2 class="cta-title" data-pt="Pronto para o seu primeiro relatório?" data-en="Ready for your first report?">Pronto para o seu primeiro relatório?</h2>
+    <p class="cta-sub" data-pt="Diga-nos o que monitorizar. Tratamos da configuração e o primeiro relatório chega no próximo ciclo." data-en="Tell us what to monitor. We handle the setup and your first report lands on the next cycle.">Diga-nos o que monitorizar. Tratamos da configuração e o primeiro relatório chega no próximo ciclo.</p>
+    <div class="cta-actions">
+      <a href="mailto:hello@owl-ops.io" class="btn-primary" data-pt="Entrar em contacto →" data-en="Get in touch →">Entrar em contacto →</a>
+      <a href="#pricing" class="btn-ghost" data-pt="Ver planos" data-en="View plans">Ver planos</a>
+    </div>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
-  <div class="logo" style="font-size:0.8rem;">
-    <div class="logo-dot"></div>
-    owl-ops
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="logo">
+        <div class="logo-mark">🦉</div>
+        Owl<b>Ops</b>
+      </a>
+      <p class="footer-desc" data-pt="Relatórios de monitorização enriquecidos com IA para PMEs. Saiba que os seus serviços estão saudáveis — sem ter de verificar." data-en="AI-enriched monitoring reports for SMBs. Know your services are healthy — without ever having to check.">Relatórios de monitorização enriquecidos com IA para PMEs. Saiba que os seus serviços estão saudáveis — sem ter de verificar.</p>
+    </div>
+    <div>
+      <div class="footer-col-title" data-pt="Produto" data-en="Product">Produto</div>
+      <ul class="footer-links">
+        <li><a href="#how" data-pt="Como funciona" data-en="How it works">Como funciona</a></li>
+        <li><a href="#ai" data-pt="Resumo com IA" data-en="AI summary">Resumo com IA</a></li>
+        <li><a href="#features" data-pt="Funcionalidades" data-en="Features">Funcionalidades</a></li>
+        <li><a href="#pricing" data-pt="Preços" data-en="Pricing">Preços</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title" data-pt="Monitorização" data-en="Monitoring">Monitorização</div>
+      <ul class="footer-links">
+        <li><a href="#features" data-pt="Sites e APIs" data-en="Sites & APIs">Sites e APIs</a></li>
+        <li><a href="#features" data-pt="Certificados SSL" data-en="SSL certificates">Certificados SSL</a></li>
+        <li><a href="#features">DNS · TCP</a></li>
+        <li><a href="#features" data-pt="Tempo de resposta" data-en="Response time">Tempo de resposta</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title" data-pt="Contacto" data-en="Contact">Contacto</div>
+      <ul class="footer-links">
+        <li><a href="mailto:hello@owl-ops.io">hello@owl-ops.io</a></li>
+        <li><a href="#" data-pt="Lisboa, Portugal" data-en="Lisbon, Portugal">Lisboa, Portugal</a></li>
+      </ul>
+    </div>
   </div>
-  <span data-pt="© 2025 owl-ops · Feito em Lisboa 🇵🇹" data-en="© 2025 owl-ops · Made in Lisbon 🇵🇹">© 2025 owl-ops · Feito em Lisboa 🇵🇹</span>
-  <span data-pt="Monitorização externa para PMEs" data-en="External monitoring for SMEs">Monitorização externa para PMEs</span>
+  <div class="footer-bottom">
+    <span data-pt="© 2026 OwlOps · Feito em Lisboa 🇵🇹" data-en="© 2026 OwlOps · Made in Lisbon 🇵🇹">© 2026 OwlOps · Feito em Lisboa 🇵🇹</span>
+    <span data-pt="Relatórios de monitorização enriquecidos com IA" data-en="AI-enriched monitoring reports">Relatórios de monitorização enriquecidos com IA</span>
+  </div>
 </footer>
 
 <script>
-  // ── LANGUAGE TOGGLE ───────────────────────────────────────────────
+  // ── LANGUAGE TOGGLE ────────────────────────────────────────────────
   let currentLang = 'pt';
 
   function toggleLang() {
@@ -1095,25 +1214,19 @@
   }
 
   function applyLang(lang) {
+    // Plain text elements
     document.querySelectorAll('[data-pt]').forEach(el => {
       const text = el.getAttribute('data-' + lang);
-      if (!text) return;
-      // Hero h1 and section titles use innerHTML (contain <br/> tags, <em>)
-      if (el.tagName === 'H1' || el.tagName === 'H2') {
-        if (lang === 'en' && el.tagName === 'H1') {
-          el.innerHTML = 'Your site is down.<br/> <em>Your customers</em> already know.';
-        } else if (lang === 'pt' && el.tagName === 'H1') {
-          el.innerHTML = 'Observability.<br/><em>Automation.</em> Peace of mind.';
-        } else {
-          el.innerHTML = text;
-        }
-      } else {
-        el.textContent = text;
-      }
+      if (text) el.textContent = text;
+    });
+    // HTML elements (with <br/>, <em>, <b>)
+    document.querySelectorAll('[data-pt-html]').forEach(el => {
+      const html = el.getAttribute('data-' + lang + '-html');
+      if (html) el.innerHTML = html;
     });
   }
 
-  // ── SCROLL REVEAL ─────────────────────────────────────────────────
+  // ── SCROLL REVEAL ──────────────────────────────────────────────────
   const observer = new IntersectionObserver(entries => {
     entries.forEach((entry, i) => {
       if (entry.isIntersecting) {
@@ -1121,14 +1234,12 @@
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.1 });
+  }, { threshold: 0.08 });
 
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 </script>
 
-
-<!-- Cloudflare Web Analytics — replace YOUR_TOKEN_HERE with your real token -->
-<!-- Get it at: dash.cloudflare.com → Web Analytics → Add a site -->
+<!-- Cloudflare Web Analytics -->
 <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
   data-cf-beacon='{"token": "YOUR_TOKEN_HERE"}'></script>
 
