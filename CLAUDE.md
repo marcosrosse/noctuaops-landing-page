@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 This file guides Claude Code when working in **owlops-landing-page**. Platform-wide context lives in the docs hub
-(`docs-podhive.io`, https://codeberg.org/mrosse/docs-podhive.io) — see its `architecture/repo-map.md`.
+(`docs-podhive.io`, https://codeberg.org/podhive/docs-podhive.io) — see its `architecture/repo-map.md`.
 
 ## What this repo is
 
