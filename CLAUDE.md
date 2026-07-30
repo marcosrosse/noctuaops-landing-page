@@ -5,7 +5,7 @@ This file guides Claude Code when working in **owlops-landing-page**. Platform-w
 
 ## What this repo is
 
-A static HTML landing page for **owl-reporter**. A single `index.html`, served from the `pages`
+A static HTML landing page for **noctua-reporter**. A single `index.html`, served from the `pages`
 branch.
 
 > **Not production.** Nothing serious depends on this; keep it simple.
